@@ -1,0 +1,22 @@
+{
+    //----------------------------------------
+    // GENERAL
+    //----------------------------------------
+    "Commentaire": {
+        "scope": "javascript,typescript,md,markdown",
+        "prefix": "com",
+        "body": [
+            "//----------------------------------------",
+            "// $1",
+            "//----------------------------------------"
+        ],
+        "description": "Commentaire"
+    },
+    "requireSnip": {
+        "scope": "javascript,typescript",
+        "prefix": "requireSnip",
+        "body": [
+            "const $1 = require('${2:$1}');"
+        ]
+    },
+}

@@ -1,0 +1,48 @@
+{
+    "name": "core-vscode-module",
+    "displayName": "core-vscode-module",
+    "description": "This vscode module allow to generate back and front end file and modules for core project",
+    "version": "1.0.0",
+    "publisher": "core-vscode-module",
+    "engines": {
+        "vscode": "^1.52.0"
+    },
+    "categories": [
+        "Other"
+    ],
+    "activationEvents": [
+        "*"
+    ],
+    "main": "./extension.js",
+    "icon": "icon.png",
+    "contributes": {
+        "commands": [
+            {
+                "command": "akt.generate",
+                "title": "akt: Generate back end modules, services or models"
+            }
+        ],
+        "configuration": {
+            "title": "core-vscode-module",
+            "properties": {
+                "core-vscode-module.mySetting": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": ""
+                }
+            }
+        }
+    },
+    "scripts": {},
+    "devDependencies": {
+        "@types/glob": "^7.1.3",
+        "@types/node": "^10.17.51",
+        "@types/vscode": "^1.52.0",
+        "eslint": "^5.13.0",
+        "typescript": "^3.9.7"
+    },
+    "dependencies": {
+        "fast-glob": "^3.2.7",
+        "fs-extra": "^10.0.0"
+    }
+}
