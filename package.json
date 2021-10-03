@@ -43,6 +43,7 @@
     },
     "dependencies": {
         "fast-glob": "^3.2.7",
-        "fs-extra": "^10.0.0"
+        "fs-extra": "^10.0.0",
+        "simple-file-templater": "^1.0.2"
     }
 }

@@ -1,7 +1,7 @@
 const vscode = require('vscode');
 const window = vscode.window;
 const Path = require('path');
-const templater = require('../templater/templater');
+const templater = require('simple-file-templater');
 
 
 const { isset, randomItemInArray, firstMatch, camelCase, pascalCase, dashCase, asArray } = require('../utils');
