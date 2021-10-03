@@ -9,7 +9,7 @@ const { isset, randomItemInArray, firstMatch, camelCase, pascalCase, dashCase, a
 let serverBasePath;
 let frontBasePath;
 module.exports = () => {
-    vscode.commands.registerCommand('akt.generate', async () => {
+    vscode.commands.registerCommand('core.generate', async () => {
         try {
 
             const backOrFront = await Q({

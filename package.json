@@ -18,8 +18,8 @@
     "contributes": {
         "commands": [
             {
-                "command": "akt.generate",
-                "title": "akt: Generate back end modules, services or models"
+                "command": "core.generate",
+                "title": "Generate back end modules, services or models"
             }
         ],
         "configuration": {
