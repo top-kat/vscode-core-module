@@ -6,18 +6,35 @@ const templater = require('simple-file-templater');
 
 const { isset, randomItemInArray, firstMatch, camelCase, pascalCase, dashCase, asArray } = require('../utils');
 
-let serverBasePath;
-let frontBasePath;
+// let serverBasePath;
+// let frontBasePath;
 module.exports = () => {
     vscode.commands.registerCommand('core.generate', async () => {
         try {
+            let basePath, isFront, isBack;
 
-            const backOrFront = await Q({
-                prompt: randomItemInArray([`Hi DAD!! What do you want I generate for you today ?`, `Huh O_o !! You waked me up!`, `Lazy boy! Do you really need that I do the work for you ?`, 'Oh SHIT! let me finish first!']),
-                choices: [`FRONT`, `BACK`],
-            });
-            const isFront = backOrFront === 'FRONT';
-            const isBack = backOrFront === 'BACK';
+            const workspacePath = vscode.workspace.workspaceFolders[0].uri.path;
+
+            if (workspacePath.includes('/server')) {
+                isFront = false;
+                isBack = true;
+                basePath = workspacePath;
+            } else if (workspacePath.includes('front')) {
+                isFront = true;
+                isBack = false;
+                basePath = workspacePath;
+            } else {
+                const backOrFront = await Q({
+                    prompt: randomItemInArray([`Hi DAD!! What do you want I generate for you today ?`, `Huh O_o !! You waked me up!`, `Lazy boy! Do you really need that I do the work for you ?`, 'Oh SHIT! let me finish first!']),
+                    choices: [`FRONT`, `BACK`],
+                });
+                isFront = backOrFront === 'FRONT';
+                isBack = backOrFront === 'BACK';
+                const folderForEnd = isFront ? 'front' : 'back';
+                basePath = (await vscode.workspace.findFiles(`**/${folderForEnd}/src/**/*`)).reduce((serverBasePath, file) => {
+                    return serverBasePath || file.path.split(`/${folderForEnd}/src/`)[0] + `/${folderForEnd}/src/`;
+                }, false);
+            }
 
             const whatToGenerate = await Q({
                 prompt: `What kind of file ?`,
@@ -33,9 +50,36 @@ module.exports = () => {
                 ],
             });
 
+            // let serverBasePath;
+            // for (const { path } of await vscode.workspace.findFiles(`**/server/src/**/*`)) {
+            //     serverBasePath = ;
+            //     if (serverBasePath) break;
+            // }
+
+            // console.log((await vscode.workspace.findFiles(`**/server/src/**/*`)));
+
+            // const frontBasePath = (await vscode.workspace.findFiles(`**/frontend/src/**/*`)).reduce((serverBasePath, { path: actualFilePath }) => {
+            //     return serverBasePath || actualFilePath.split('/frontend/src/')[0] + '/frontend/src/';
+            // }, false);
+            // const allModulePaths = allServerModuleConfigFilesUri.reduce((uniqueModulePaths, actualFullPath) => {
+            //     const [, rootPath, modulePath] = actualFullPath.path.match(new RegExp(`^(.*)(/${nameOfRootFolder}/[^/]+/).*$`)) || [];
+            //     if (modulePath && !uniqueModulePaths.includes(modulePath) && ignorePatterns.every(ignorePattern => !modulePath.includes(ignorePattern))) {
+            //         if (!isset(serverBasePath) && modulePath.includes('server')) serverBasePath = Path.join(rootPath, nameOfRootFolder);
+            //         else if (!isset(frontBasePath) && modulePath.includes('frontend')) frontBasePath = Path.join(rootPath, nameOfRootFolder);
+            //         uniqueModulePaths.push(modulePath);
+            //     }
+            //     return uniqueModulePaths;
+            // }, []);
+
+            // const allModules = allModulePaths.reduce((moduleNames, actualPth) => {
+            //     const moduleName = firstMatch(actualPth, new RegExp(`${nameOfRootFolder}.([^\\/]+).`));
+            //     if (!moduleNames.includes(moduleName)) return [...moduleNames, moduleName];
+            //     else return moduleNames;
+            // }, []);
+            // allModules.sort();
+            // return allModules;
+
             // this is needed for all file generation
-            const frontModuleNames = await findAllModuleNames('frontend/src', ['00_core', '/dist/']);
-            const backModuleNames = await findAllModuleNames('server/src', ['00_core', '/dist/']);
 
             if (whatToGenerate === `MODULE`) {
                 //----------------------------------------
@@ -53,14 +97,17 @@ module.exports = () => {
                 };
 
                 const createdPaths = templater.templater(
-                    Path.join(isFront ? frontBasePath : serverBasePath, `00_core/templates/new-module`), // from
-                    Path.join(isFront ? frontBasePath : serverBasePath, `${varz['my-new-module']}`), // to
+                    Path.join(basePath, `00_core/templates/new-module`), // from
+                    Path.join(basePath, `${varz['my-new-module']}`), // to
                     varz, // replace
                     { module: varz['my-new-module'] }, // file name replacer
                 );
 
                 await openFiles(...createdPaths.filter(p => !p.includes('error.js') && !p.includes('config.js')));
             } else {
+                const frontModuleNames = await findAllModuleNames('frontend/src', ['00_core', '/dist/']);
+                const backModuleNames = await findAllModuleNames('server/src', ['00_core', '/dist/']);
+
                 const selectedModuleR = await Q({
                     prompt: `In which module?`,
                     choices: isFront ? frontModuleNames : backModuleNames,
@@ -74,8 +121,8 @@ module.exports = () => {
                     //----------------------------------------
                     // SERVICE
                     //----------------------------------------
-                    const generatedFilePath = Path.join(serverBasePath, selectedModule, 'services', fileName + '.svc.js');
-                    const templatePath = Path.join(serverBasePath, `00_core/templates/module-generic.svc.js`);
+                    const generatedFilePath = Path.join(basePath, selectedModule, 'services', fileName + '.svc.js');
+                    const templatePath = Path.join(basePath, `00_core/templates/module-generic.svc.js`);
                     await writeAndopenFile([generatedFilePath, templatePath]);
                 } else if (whatToGenerate === `COMPONENT`) {
                     //----------------------------------------
@@ -93,8 +140,8 @@ module.exports = () => {
                     };
 
                     const createdPaths = templater.templater(
-                        Path.join(isFront ? frontBasePath : serverBasePath, `00_core/templates/new-module`), // from
-                        Path.join(isFront ? frontBasePath : serverBasePath, `${varz['my-new-module']}`), // to
+                        Path.join(basePath, `00_core/templates/new-module`), // from
+                        Path.join(basePath, `${varz['my-new-module']}`), // to
                         varz, // replace
                         { module: varz['my-new-module'] }, // file name replacer
                     );
@@ -104,18 +151,18 @@ module.exports = () => {
                     //----------------------------------------
                     // MODEL
                     //----------------------------------------
-                    const generatedModelFilePath = Path.join(serverBasePath, selectedModule, 'models', fileName + '.model.js');
-                    const generatedDaoPath = Path.join(serverBasePath, selectedModule, 'models', fileName + '.dao.js');
-                    const modelTemplatePath = Path.join(serverBasePath, `00_core/templates/module.model.js`);
-                    const daoTemplatePath = Path.join(serverBasePath, `00_core/templates/module.dao.js`);
+                    const generatedModelFilePath = Path.join(basePath, selectedModule, 'models', fileName + '.model.js');
+                    const generatedDaoPath = Path.join(basePath, selectedModule, 'models', fileName + '.dao.js');
+                    const modelTemplatePath = Path.join(basePath, `00_core/templates/module.model.js`);
+                    const daoTemplatePath = Path.join(basePath, `00_core/templates/module.dao.js`);
                     const varz = { 'my-new-module': fileName };
                     await writeAndopenFile([generatedDaoPath, daoTemplatePath, varz], [generatedModelFilePath, modelTemplatePath, varz]);
                 } else if (whatToGenerate === `SEED file`) {
                     //----------------------------------------
                     // SEED
                     //----------------------------------------
-                    const generatedSeedPath = Path.join(serverBasePath, selectedModule, fileName + '-seed.js');
-                    const templatePath = Path.join(serverBasePath, `00_core/templates/module-seed.js`);
+                    const generatedSeedPath = Path.join(basePath, selectedModule, fileName + '-seed.js');
+                    const templatePath = Path.join(basePath, `00_core/templates/module-seed.js`);
                     await writeAndopenFile([generatedSeedPath, templatePath, moduleNameVarz(selectedModule)]);
                 } else vscode.window.showInformationMessage(randomItemInArray(['Next time avoid waking me up', 'What! All that for.......that ?!', 'little dick', `You don't dare ? Dare you ?`, `Next time I'll stay in my bed!`]));
             }
@@ -173,12 +220,8 @@ async function writeAndopenFile(...configs) {
 async function findAllModuleNames(nameOfRootFolder, ignorePatterns) {
     const allServerModuleConfigFilesUri = await vscode.workspace.findFiles(`**/${nameOfRootFolder}/**/*`);
     const allModulePaths = allServerModuleConfigFilesUri.reduce((uniqueModulePaths, actualFullPath) => {
-        const [, rootPath, modulePath] = actualFullPath.path.match(new RegExp(`^(.*)(/${nameOfRootFolder}/[^/]+/).*$`)) || [];
-        if (modulePath && !uniqueModulePaths.includes(modulePath) && ignorePatterns.every(ignorePattern => !modulePath.includes(ignorePattern))) {
-            if (!isset(serverBasePath) && modulePath.includes('server')) serverBasePath = Path.join(rootPath, nameOfRootFolder);
-            else if (!isset(frontBasePath) && modulePath.includes('frontend')) frontBasePath = Path.join(rootPath, nameOfRootFolder);
-            uniqueModulePaths.push(modulePath);
-        }
+        const [, modulePath] = actualFullPath.path.match(new RegExp(`(/${nameOfRootFolder}/[^/]+/).*$`)) || [];
+        if (modulePath && !uniqueModulePaths.includes(modulePath) && ignorePatterns.every(ignorePattern => !modulePath.includes(ignorePattern))) uniqueModulePaths.push(modulePath);
         return uniqueModulePaths;
     }, []);
 
