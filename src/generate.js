@@ -11,7 +11,7 @@ const { isset, randomItemInArray, firstMatch, camelCase, pascalCase, dashCase, a
 module.exports = () => {
     vscode.commands.registerCommand('coreVscodeModule.generate', async () => {
         try {
-            let basePath, isFront, isBack;
+            let basePath, isFront, isBack, isOneLevelAboveRoot = false;
 
             const workspacePath = vscode.workspace.workspaceFolders[0].uri.path;
 
@@ -34,6 +34,7 @@ module.exports = () => {
                 basePath = (await vscode.workspace.findFiles(`**/${folderForEnd}/src/**/*`)).reduce((serverBasePath, file) => {
                     return serverBasePath || file.path.split(`/${folderForEnd}/src/`)[0] + `/${folderForEnd}/src/`;
                 }, false);
+                isOneLevelAboveRoot = true
             }
 
             const whatToGenerate = await Q({
@@ -72,10 +73,10 @@ module.exports = () => {
                     { module: varz['my-new-module'] }, // file name replacer
                 );
 
-                await openFiles(...createdPaths.filter(p => !p.includes('error.js') && !p.includes('config.js')));
+                await openFiles(...createdPaths.filter(p => !p.includes('error.js')));
             } else {
-                const frontModuleNames = await findAllModuleNames('frontend/src', ['00_core', '/dist/']);
-                const backModuleNames = await findAllModuleNames('server/src', ['00_core', '/dist/']);
+                const frontModuleNames = await findAllModuleNames(isOneLevelAboveRoot ? 'frontend/src' : 'src', ['00_core', '/dist/']);
+                const backModuleNames = await findAllModuleNames(isOneLevelAboveRoot ? 'server/src' : 'src', ['00_core', '/dist/']);
 
                 const selectedModuleR = await Q({
                     prompt: `In which module?`,
