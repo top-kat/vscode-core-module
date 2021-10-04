@@ -9,7 +9,7 @@ const { isset, randomItemInArray, firstMatch, camelCase, pascalCase, dashCase, a
 // let serverBasePath;
 // let frontBasePath;
 module.exports = () => {
-    vscode.commands.registerCommand('core.generate', async () => {
+    vscode.commands.registerCommand('coreVscodeModule.generate', async () => {
         try {
             let basePath, isFront, isBack;
 
@@ -18,11 +18,11 @@ module.exports = () => {
             if (workspacePath.includes('/server')) {
                 isFront = false;
                 isBack = true;
-                basePath = workspacePath;
+                basePath = Path.join(workspacePath, 'src');
             } else if (workspacePath.includes('front')) {
                 isFront = true;
                 isBack = false;
-                basePath = workspacePath;
+                basePath = Path.join(workspacePath, 'src');
             } else {
                 const backOrFront = await Q({
                     prompt: randomItemInArray([`Hi DAD!! What do you want I generate for you today ?`, `Huh O_o !! You waked me up!`, `Lazy boy! Do you really need that I do the work for you ?`, 'Oh SHIT! let me finish first!']),
@@ -49,37 +49,6 @@ module.exports = () => {
                     `MODULE`,
                 ],
             });
-
-            // let serverBasePath;
-            // for (const { path } of await vscode.workspace.findFiles(`**/server/src/**/*`)) {
-            //     serverBasePath = ;
-            //     if (serverBasePath) break;
-            // }
-
-            // console.log((await vscode.workspace.findFiles(`**/server/src/**/*`)));
-
-            // const frontBasePath = (await vscode.workspace.findFiles(`**/frontend/src/**/*`)).reduce((serverBasePath, { path: actualFilePath }) => {
-            //     return serverBasePath || actualFilePath.split('/frontend/src/')[0] + '/frontend/src/';
-            // }, false);
-            // const allModulePaths = allServerModuleConfigFilesUri.reduce((uniqueModulePaths, actualFullPath) => {
-            //     const [, rootPath, modulePath] = actualFullPath.path.match(new RegExp(`^(.*)(/${nameOfRootFolder}/[^/]+/).*$`)) || [];
-            //     if (modulePath && !uniqueModulePaths.includes(modulePath) && ignorePatterns.every(ignorePattern => !modulePath.includes(ignorePattern))) {
-            //         if (!isset(serverBasePath) && modulePath.includes('server')) serverBasePath = Path.join(rootPath, nameOfRootFolder);
-            //         else if (!isset(frontBasePath) && modulePath.includes('frontend')) frontBasePath = Path.join(rootPath, nameOfRootFolder);
-            //         uniqueModulePaths.push(modulePath);
-            //     }
-            //     return uniqueModulePaths;
-            // }, []);
-
-            // const allModules = allModulePaths.reduce((moduleNames, actualPth) => {
-            //     const moduleName = firstMatch(actualPth, new RegExp(`${nameOfRootFolder}.([^\\/]+).`));
-            //     if (!moduleNames.includes(moduleName)) return [...moduleNames, moduleName];
-            //     else return moduleNames;
-            // }, []);
-            // allModules.sort();
-            // return allModules;
-
-            // this is needed for all file generation
 
             if (whatToGenerate === `MODULE`) {
                 //----------------------------------------
