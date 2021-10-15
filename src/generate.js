@@ -70,7 +70,7 @@ module.exports = () => {
                     Path.join(basePath, `00_core/templates/new-module`), // from
                     Path.join(basePath, `${varz['my-new-module']}`), // to
                     varz, // replace
-                    { module: varz['my-new-module'] }, // file name replacer
+                    { module: varz['my-new-module'], Module: varz.MyNewModule, }, // file name replacer
                 );
 
                 await openFiles(...createdPaths.filter(p => !p.includes('error.js')));
