@@ -74,9 +74,9 @@ const process = {
         regexpHighlightFirstCapturingGroup(editor, /\$\.throw\.[A-Za-z0-9_]+/g, config.styles.error, config.styles.errorDim);
     },
     extension: {
-        js(editor) {
-            // regexpHighlightFirstCapturingGroup(editor, / (B|bridgeService)\./g, config.styles.bridgeService);
-        },
+        // js(editor) {
+        //    regexpHighlightFirstCapturingGroup(editor, / (B|bridgeService)\./g, config.styles.bridgeService);
+        // },
     },
     // PROJECTIONS
     projections(editor) {
