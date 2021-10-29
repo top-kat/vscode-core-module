@@ -68,7 +68,7 @@ module.exports = () => {
 
                 const createdPaths = templater.templater(
                     Path.join(basePath, `00_core/templates/new-module`), // from
-                    Path.join(basePath, `${varz['my-new-module']}`), // to
+                    Path.join(basePath, isFront ? varz.MyNewModule : varz['my-new-module']), // to
                     varz, // replace
                     { module: varz['my-new-module'], Module: varz.MyNewModule, }, // file name replacer
                 );
@@ -84,7 +84,7 @@ module.exports = () => {
                 });
                 const selectedModule = selectedModuleR.toString(); // hack for no red to appear
                 const fileName = await Q({
-                    prompt: `File name without type extension (Eg: 'user-update' OR 'reservation-cancel')`,
+                    prompt: whatToGenerate === `COMPONENT` ? `Component name ?` : `File name without type extension (Eg: 'user-update' OR 'reservation-cancel')`,
                     validateInput: str => isset(str) && str.length ? null : 'Cannot be empty',
                 });
                 if (whatToGenerate === `SERVICE`) {
@@ -98,25 +98,21 @@ module.exports = () => {
                     //----------------------------------------
                     // COMPONENT
                     //----------------------------------------
-                    const moduleName = await Q({
-                        prompt: `Module name ?`,
-                        validateInput: str => isset(str) && str.length ? null : 'Cannot be empty',
-                    });
                     const varz = {
-                        ...moduleNameVarz(moduleName),
+                        ...moduleNameVarz(fileName),
                         // others
                         '/\\*eslint-disable\\*/': '',
                         '// here for intellisense': '',
                     };
 
                     const createdPaths = templater.templater(
-                        Path.join(basePath, `00_core/templates/new-module`), // from
-                        Path.join(basePath, `${varz['my-new-module']}`), // to
+                        Path.join(basePath, `00_core/templates/new-component`), // from
+                        Path.join(basePath, selectedModule, `${varz.MyNewModule}`), // to
                         varz, // replace
-                        { module: varz['my-new-module'] }, // file name replacer
+                        { module: varz['my-new-module'], Module: varz.MyNewModule }, // file name replacer
                     );
 
-                    await openFiles(...createdPaths.filter(p => !p.includes('error.js') && !p.includes('config.js')));
+                    await openFiles(...createdPaths);
                 } else if (whatToGenerate === `MODEL`) {
                     //----------------------------------------
                     // MODEL
