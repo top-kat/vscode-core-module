@@ -1,8 +1,8 @@
 {
     "name": "core-vscode-module",
     "displayName": "core-vscode-module",
-    "description": "This vscode module allow to generate back and front end file and modules for core project",
-    "version": "1.0.6",
+    "description": "This vscode module allow to generate back and front end file and modules for core project and highlight particular core syntaxes",
+    "version": "1.0.7",
     "publisher": "topkat",
     "engines": {
         "vscode": "^1.52.0"
@@ -11,7 +11,8 @@
         "Other"
     ],
     "activationEvents": [
-        "onCommand:coreVscodeModule.generate"
+        "onCommand:coreVscodeModule.generate",
+        "onLanguage:javascript"
     ],
     "repository": {
         "type": "git",
