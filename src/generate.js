@@ -42,9 +42,10 @@ module.exports = () => {
                 choices: isBack ? [
                     `SERVICE`,
                     `MODEL`,
-                    `MODULE`,
-                    `SEED file`,
-                    `SCHEDULE`,
+                    `DAO`,
+                    `DEFINITIONS`,
+                    `IMPORT`,
+                    `SEED`,
                 ] : [
                     'COMPONENT',
                     `MODULE`,
@@ -73,7 +74,7 @@ module.exports = () => {
                     { module: varz['my-new-module'], Module: varz.MyNewModule, }, // file name replacer
                 );
 
-                await openFiles(...createdPaths.filter(p => !p.includes('error.js')));
+                await openFiles(...createdPaths.filter(p => !p.includes('error')));
             } else {
                 const frontModuleNames = await findAllModuleNames(isOneLevelAboveRoot ? 'frontend/src' : 'src', ['00_core', '/dist/']);
                 const backModuleNames = await findAllModuleNames(isOneLevelAboveRoot ? 'server/src' : 'src', ['00_core', '/dist/']);
@@ -81,19 +82,31 @@ module.exports = () => {
                 const selectedModuleR = await Q({
                     prompt: `In which module?`,
                     choices: isFront ? frontModuleNames : backModuleNames,
+                    allowCustomValues: true,
                 });
                 const selectedModule = selectedModuleR.toString(); // hack for no red to appear
                 const fileName = await Q({
                     prompt: whatToGenerate === `COMPONENT` ? `Component name ?` : `File name without type extension (Eg: 'user-update' OR 'reservation-cancel')`,
                     validateInput: str => isset(str) && str.length ? null : 'Cannot be empty',
                 });
-                if (whatToGenerate === `SERVICE`) {
+
+
+                if ([`SERVICE`, `IMPORT`, `DEFINITIONS`, `MODEL`, `DAO`].includes(whatToGenerate)) {
                     //----------------------------------------
-                    // SERVICE
+                    // GENERIC
                     //----------------------------------------
-                    const generatedFilePath = Path.join(basePath, selectedModule, 'services', fileName + '.svc.js');
-                    const templatePath = Path.join(basePath, `00_core/templates/module-generic.svc.js`);
-                    await writeAndopenFile([generatedFilePath, templatePath]);
+                    const extensions = {
+                        service: [`.svc.ts`, `module-generic.svc.ts`],
+                        import: [`-import.svc.ts`, `module-import.svc.ts`],
+                        definitions: [`.def.ts`, `module.def.ts`],
+                        seed: [`.seed.ts`, `module.seed.ts`],
+                        model: [`.model.ts`, `module.model.ts`],
+                        dao: [`.dao.ts`, `module.dao.ts`],
+                    }
+                    const [extension, templateName] = extensions[whatToGenerate.toLowerCase()]
+                    const generatedFilePath = Path.join(basePath, selectedModule, 'services', fileName + extension);
+                    const templatePath = Path.join(basePath, `00_core/templates/${templateName}`);
+                    await writeAndopenFile([generatedFilePath, templatePath, moduleNameVarz(selectedModule)]);
                 } else if (whatToGenerate === `COMPONENT`) {
                     //----------------------------------------
                     // COMPONENT
@@ -113,23 +126,6 @@ module.exports = () => {
                     );
 
                     await openFiles(...createdPaths);
-                } else if (whatToGenerate === `MODEL`) {
-                    //----------------------------------------
-                    // MODEL
-                    //----------------------------------------
-                    const generatedModelFilePath = Path.join(basePath, selectedModule, 'models', fileName + '.model.js');
-                    const generatedDaoPath = Path.join(basePath, selectedModule, 'models', fileName + '.dao.js');
-                    const modelTemplatePath = Path.join(basePath, `00_core/templates/module.model.js`);
-                    const daoTemplatePath = Path.join(basePath, `00_core/templates/module.dao.js`);
-                    const varz = { 'my-new-module': fileName };
-                    await writeAndopenFile([generatedDaoPath, daoTemplatePath, varz], [generatedModelFilePath, modelTemplatePath, varz]);
-                } else if (whatToGenerate === `SEED file`) {
-                    //----------------------------------------
-                    // SEED
-                    //----------------------------------------
-                    const generatedSeedPath = Path.join(basePath, selectedModule, fileName + '-seed.js');
-                    const templatePath = Path.join(basePath, `00_core/templates/module-seed.js`);
-                    await writeAndopenFile([generatedSeedPath, templatePath, moduleNameVarz(selectedModule)]);
                 } else vscode.window.showInformationMessage(randomItemInArray(['Next time avoid waking me up', 'What! All that for.......that ?!', 'little dick', `You don't dare ? Dare you ?`, `Next time I'll stay in my bed!`]));
             }
         } catch (err) {
@@ -158,8 +154,28 @@ function moduleNameVarz(moduleName) {
 
 async function Q(questionConfig) {
     if (questionConfig.choices) {
-        const { choices, ...options } = questionConfig;
-        return await window.showQuickPick(choices, { ...options });
+        const { choices, allowCustomValues } = questionConfig;
+        return new Promise((resolve) => {
+            const quickPick = window.createQuickPick();
+            quickPick.items = choices.map(choice => ({ label: choice }));
+            //  if (questionConfig.prompt) quickPick.placeholder = questionConfig.prompt
+            if (questionConfig.prompt) quickPick.title = questionConfig.prompt
+            if (allowCustomValues) {
+                quickPick.onDidChangeValue(() => {
+                    // add a new code to the pick list as the first item
+                    if (!choices.includes(quickPick.value)) {
+                        const newItems = [quickPick.value, ...choices].map(label => ({ label }))
+                        quickPick.items = newItems
+                    }
+                })
+            }
+            quickPick.onDidAccept(() => {
+                const selection = quickPick.activeItems[0]
+                resolve(selection.label)
+                quickPick.hide()
+            })
+            quickPick.show();
+        })
     } else {
         return await window.showInputBox(questionConfig);
     }

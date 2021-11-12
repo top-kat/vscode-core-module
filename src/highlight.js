@@ -4,9 +4,7 @@ const vscode = require('vscode');
 const window = vscode.window;
 const workspace = vscode.workspace;
 
-const config = require('./config');
-
-const { isset, allMatches } = require('@cawita/data-validation-utils/src');
+const { isset, allMatches } = require('../utils');
 
 //----------------------------------------
 // CONFIG
@@ -15,35 +13,12 @@ const { isset, allMatches } = require('@cawita/data-validation-utils/src');
 const config = {
     /** Will be converted to vscode.window.createTextEditorDecorationType */
     stylesRaw: {
-        // PROJECTIONS
-        projectionChars: { color: '#AAAAAA' }, //#ffaa77
-        // TEST / TEST FLOW
-        dimTestFlow: { opacity: '0.5', color: '#83bb71' },
-        dimTest: { opacity: '0.5' /* , color: '#CCC'  */ },
-        // testName: false,
-        testFlowName: { color: '#83bb71' },
-        testDescriptionSynopsis: { color: '#888' },
-        testDescription: {
-            color: '#fff',///
-            opacity: '0.45',
-            //color: '#68b3e7' // bleu fonce
-            //color: '#4ed7d4' // bleu clair
-            // color: '#d7a44e' orange
-            //color: '#bdbdbd' // gris
-        },
-        testDescriptionOut: {
-            opacity: '0.28',
-            color: '#fff'
-        },
         // GLOBAL
         dim: { opacity: '0.6' },
         delete: {
             fontWeight: 'bold',
             backgroundColor: '#953627',
             color: '#000',
-        },
-        bridgeService: {
-            color: '#C7407D',
         },
         warningSign: {
             fontWeight: 'bold',
@@ -56,71 +31,22 @@ const config = {
             color: '#000',
         },
         error: {
-            color: '#D5756B',
-        },
-        errorDim: {
-            color: '#D5756B',
-            opacity: '0.6'
+            color: '#c55e5e',
         },
     },
     styles: {},
 };
+
+for (const name in config.stylesRaw) config.styles[name] = window.createTextEditorDecorationType(config.stylesRaw[name]);
 
 const process = {
     all(editor) {
         regexpHighlight(editor, /\/!\\/g, config.styles.warningSign);
         regexpHighlightFirstCapturingGroup(editor, /(TODO)/g, config.styles.todo);
         regexpHighlightFirstCapturingGroup(editor, /(DELETEME|TODELETE)/g, config.styles.delete);
-        regexpHighlightFirstCapturingGroup(editor, /\$\.throw\.[A-Za-z0-9_]+/g, config.styles.error, config.styles.errorDim);
+        regexpHighlight(editor, /\$\.throw(\.[[\]A-Za-z0-9_]+)?/g, config.styles.error);
     },
-    extension: {
-        // js(editor) {
-        //    regexpHighlightFirstCapturingGroup(editor, / (B|bridgeService)\./g, config.styles.bridgeService);
-        // },
-    },
-    // PROJECTIONS
-    projections(editor) {
-        const text = editor.document.getText();
-        const match = /(projections\s*:\s*{(?:.|\s)*?)}(?:.|\s)*?mask/.exec(text);
-        if (isset(match[1])) {
-            const colorizedChars = ['[', ']', ',']; // array 4 perf
-            const stringChar = ['\'', '`', '"'];
-            const decorations = [];
-            let precedingChar = false;
-            let stringCharOpen = false;
-
-            match[1].split('').forEach((char, i) => {
-                if (stringCharOpen && char === stringCharOpen && precedingChar !== '\\') {
-                    // close a string
-                    stringCharOpen = false;
-                } else if (stringCharOpen) {
-                    // add index
-                    if (colorizedChars.includes(char)) {
-                        const start = editor.document.positionAt(match.index + i);
-                        const end = editor.document.positionAt(match.index + i + 1);
-                        decorations.push(new vscode.Range(start, end));
-                    }
-                } else if (stringChar.includes(char)) {
-                    // open a string
-                    stringCharOpen = char;
-                }
-                precedingChar = char;
-            });
-
-            editor.setDecorations(config.styles.projectionChars, decorations);
-        }
-    },
-    flow(editor) {
-        // require test flow in green to catch attention
-        regexpHighlightFirstCapturingGroup(editor, /require\(\s?'.*\/(.*?)-test-flow'\s?\)/g, config.styles.testFlowName, config.styles.dimTestFlow);
-
-        // require test (dim the not relevant part)
-        // regexpHighlightFirstCapturingGroup( editor, /require\(\s?'.*\/(.*?)test'\s?\)/g, config.styles.testName, config.styles.dimTest);
-
-        // highlight test description
-        regexpHighlightFirstCapturingGroup(editor, /description: (.*?),\s*\n/g, config.styles.testDescription, config.styles.testDescriptionOut);
-        regexpHighlight(editor, /\d+\).*$/g, config.styles.testDescriptionSynopsis);
-    },
+    extension: {},
 };
 
 const fileTypes = Object.keys(process);
@@ -128,7 +54,7 @@ const fileTypes = Object.keys(process);
 //----------------------------------------
 // INIT
 //----------------------------------------
-module.exports = ctx => {
+module.exports = (ctx = {}) => {
     highlight();
 
     window.onDidChangeActiveTextEditor(highlight, null, ctx.subscriptions);
@@ -185,6 +111,7 @@ function highlight() {
 
 /** Highlight whole match of the regexp */
 function regexpHighlight(editor, regexp, style, hoverMessage) {
+    if (!isset(style)) throw new Error('style is not defined for regexpHighlight')
     const text = editor.document.getText();
     let match;
     const ranges = [];
@@ -194,7 +121,7 @@ function regexpHighlight(editor, regexp, style, hoverMessage) {
         const range = new vscode.Range(start, end);
         ranges.push(isset(hoverMessage) ? { range, hoverMessage } : range);
     }
-    editor.setDecorations(style, ranges);
+    if (ranges.length) editor.setDecorations(style, ranges);
 }
 
 /**
@@ -211,6 +138,7 @@ function regexpHighlightFirstCapturingGroup(editor, regexp, styleForCapturingGro
 
     while (match = regexp.exec(text)) {
         if (!isset(match[1])) continue;
+        console.log(`match`, match);
 
         const match1Start = match.index + match[0].lastIndexOf(match[1]);
         const match1End = match1Start + match[1].length;
