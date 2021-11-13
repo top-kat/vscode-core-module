@@ -91,7 +91,7 @@ module.exports = () => {
                 });
 
 
-                if ([`SERVICE`, `IMPORT`, `DEFINITIONS`, `MODEL`, `DAO`].includes(whatToGenerate)) {
+                if ([`SERVICE`, `IMPORT`, `DEFINITIONS`, `MODEL`, `DAO`, `SEED`].includes(whatToGenerate)) {
                     //----------------------------------------
                     // GENERIC
                     //----------------------------------------
