@@ -1,6 +1,7 @@
 const vscode = require('vscode');
 const window = vscode.window;
 const Path = require('path');
+const fs = require('fs')
 const templater = require('simple-file-templater');
 
 
@@ -26,15 +27,20 @@ module.exports = () => {
             } else {
                 const backOrFront = await Q({
                     prompt: randomItemInArray([`Hi DAD!! What do you want I generate for you today ?`, `Huh O_o !! You waked me up!`, `Lazy boy! Do you really need that I do the work for you ?`, 'Oh SHIT! let me finish first!']),
-                    choices: [`FRONT`, `BACK`],
+                    choices: [`BACK`, `FRONT`],
                 });
                 isFront = backOrFront === 'FRONT';
                 isBack = backOrFront === 'BACK';
                 const folderForEnd = isFront ? 'front' : 'back';
-                basePath = (await vscode.workspace.findFiles(`**/${folderForEnd}/src/**/*`)).reduce((serverBasePath, file) => {
-                    return serverBasePath || file.path.split(`/${folderForEnd}/src/`)[0] + `/${folderForEnd}/src/`;
-                }, false);
-                isOneLevelAboveRoot = true
+                console.log(`workspacePath`, workspacePath);
+                if (fs.existsSync(Path.join(workspacePath, 'src'))) basePath = Path.join(workspacePath, 'src');
+                else {
+                    basePath = (await vscode.workspace.findFiles(`**/${folderForEnd}/src/**/*`)).reduce((serverBasePath, file) => {
+                        return serverBasePath || file.path.split(`/${folderForEnd}/src/`)[0] + `/${folderForEnd}/src/`;
+                    }, false);
+                    isOneLevelAboveRoot = true
+                }
+                console.log(`basePath`, basePath);
             }
 
             const whatToGenerate = await Q({
