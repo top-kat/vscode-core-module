@@ -102,15 +102,16 @@ module.exports = () => {
                     // GENERIC
                     //----------------------------------------
                     const extensions = {
-                        service: [`.svc.ts`, `module-generic.svc.ts`],
-                        import: [`-import.svc.ts`, `module-import.svc.ts`],
-                        definitions: [`.def.ts`, `module.def.ts`],
-                        seed: [`.seed.ts`, `module.seed.ts`],
-                        model: [`.model.ts`, `module.model.ts`],
-                        dao: [`.dao.ts`, `module.dao.ts`],
+                        //       extension |        fileName        | folder
+                        service: [`.svc.ts`, `module-generic.svc.ts`, `service`],
+                        import: [`-import.svc.ts`, `module-import.svc.ts`, `service`],
+                        definitions: [`.def.ts`, `module.def.ts`, ``],
+                        seed: [`.seed.ts`, `module.seed.ts`, ``],
+                        model: [`.model.ts`, `module.model.ts`, `model`],
+                        dao: [`.dao.ts`, `module.dao.ts`, `model`],
                     }
-                    const [extension, templateName] = extensions[whatToGenerate.toLowerCase()]
-                    const generatedFilePath = Path.join(basePath, selectedModule, 'services', fileName + extension);
+                    const [extension, templateName, folderName] = extensions[whatToGenerate.toLowerCase()]
+                    const generatedFilePath = Path.join(basePath, selectedModule, folderName, fileName + extension);
                     const templatePath = Path.join(basePath, `00_core/templates/${templateName}`);
                     await writeAndopenFile([generatedFilePath, templatePath, moduleNameVarz(selectedModule)]);
                 } else if (whatToGenerate === `COMPONENT`) {
