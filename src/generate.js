@@ -107,8 +107,8 @@ module.exports = () => {
                         import: [`-import.svc.ts`, `module-import.svc.ts`, `service`],
                         definitions: [`.def.ts`, `module.def.ts`, ``],
                         seed: [`.seed.ts`, `module.seed.ts`, ``],
-                        model: [`.model.ts`, `module.model.ts`, `model`],
-                        dao: [`.dao.ts`, `module.dao.ts`, `model`],
+                        model: [`.model.ts`, `module.model.ts`, `models`],
+                        dao: [`.dao.ts`, `module.dao.ts`, `models`],
                     }
                     const [extension, templateName, folderName] = extensions[whatToGenerate.toLowerCase()]
                     const generatedFilePath = Path.join(basePath, selectedModule, folderName, fileName + extension);
