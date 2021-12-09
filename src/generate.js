@@ -52,6 +52,7 @@ module.exports = () => {
                     `DEFINITIONS`,
                     `IMPORT`,
                     `SEED`,
+                    `USERFLOWS`
                 ] : [
                     'COMPONENT',
                     `MODULE`,
@@ -97,18 +98,19 @@ module.exports = () => {
                 });
 
 
-                if ([`SERVICE`, `IMPORT`, `DEFINITIONS`, `MODEL`, `DAO`, `SEED`].includes(whatToGenerate)) {
+                if ([`SERVICE`, `IMPORT`, `DEFINITIONS`, `MODEL`, `DAO`, `SEED`, `USERFLOWS`].includes(whatToGenerate)) {
                     //----------------------------------------
                     // GENERIC
                     //----------------------------------------
                     const extensions = {
-                        //       extension |        fileName        | folder
+                        //       extension |     templateName        | folder
                         service: [`.svc.ts`, `module-generic.svc.ts`, `service`],
                         import: [`-import.svc.ts`, `module-import.svc.ts`, `service`],
                         definitions: [`.def.ts`, `module.def.ts`, ``],
                         seed: [`.seed.ts`, `module.seed.ts`, ``],
                         model: [`.model.ts`, `module.model.ts`, `models`],
                         dao: [`.dao.ts`, `module.dao.ts`, `models`],
+                        userflows: [`.user-flow.ts`, `module.user-flow.ts`, ``],
                     }
                     const [extension, templateName, folderName] = extensions[whatToGenerate.toLowerCase()]
                     const generatedFilePath = Path.join(basePath, selectedModule, folderName, fileName + extension);
