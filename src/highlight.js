@@ -60,34 +60,6 @@ module.exports = (ctx = {}) => {
     window.onDidChangeActiveTextEditor(highlight, null, ctx.subscriptions);
 
     workspace.onDidChangeTextDocument(highlight, null, ctx.subscriptions);
-
-    //----------------------------------------
-    // TEST FLOW AUTO SYNOPSIS
-    //----------------------------------------
-    workspace.onWillSaveTextDocument(async function (event) {
-        highlight();
-        try {
-            const editor = window.activeTextEditor;
-            if (editor && event.document === editor.document && editor.document.fileName.endsWith('flow.js')) {
-                const text = editor.document.getText();
-                const match = /^\/\* SYNOPSIS[\s\S]*?\*\/\n?\n?/.exec(text) || [];
-                const alreadyExistingSelection = isset(match[0]);
-                const allDescriptionMatches = allMatches(text, /description: `(.*?)`,\s*\n/g);
-                let synopsis = '/* SYNOPSIS\n\n';
-                let i = 0;
-                for (const [, description] of allDescriptionMatches) synopsis += `${++i}) ${description}\n`;
-                synopsis += '*/\n\n';
-                await editor.edit(editBuilder => {
-                    if (alreadyExistingSelection) {
-                        const deleteStart = editor.document.positionAt(match.index);
-                        const deleteEnd = editor.document.positionAt(match.index + match[0].length);
-                        editBuilder.delete(new vscode.Range(deleteStart, deleteEnd));
-                    }
-                    editBuilder.insert(editor.document.positionAt(0), synopsis);
-                });
-            }
-        } catch (err) { console.error(err); }
-    }, null, ctx.subscriptions);
 };
 
 
