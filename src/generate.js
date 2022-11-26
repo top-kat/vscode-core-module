@@ -40,8 +40,9 @@ module.exports = () => {
                     }, false);
                     isOneLevelAboveRoot = true
                 }
-                console.log(`basePath`, basePath);
             }
+
+            const corePathRoot = fs.existsSync(Path.join(basePath, '/00_nuke')) ? '00_nuke' : '0_core'
 
             const whatToGenerate = await Q({
                 prompt: `What kind of file ?`,
@@ -75,7 +76,7 @@ module.exports = () => {
                 };
 
                 const createdPaths = templater.templater(
-                    Path.join(basePath, `00_nuke/templates/new-module`), // from
+                    Path.join(basePath, `${corePathRoot}/templates/new-module`), // from
                     Path.join(basePath, isFront ? varz.MyNewModule : varz['my-new-module']), // to
                     varz, // replace
                     { module: varz['my-new-module'], Module: varz.MyNewModule, }, // file name replacer
@@ -83,8 +84,8 @@ module.exports = () => {
 
                 await openFiles(...createdPaths.filter(p => !p.includes('error')));
             } else {
-                const frontModuleNames = await findAllModuleNames(isOneLevelAboveRoot ? 'frontend/src' : 'src', ['00_nuke', '/dist/']);
-                const backModuleNames = await findAllModuleNames(isOneLevelAboveRoot ? 'server/src' : 'src', ['00_nuke', '/dist/']);
+                const frontModuleNames = await findAllModuleNames(isOneLevelAboveRoot ? 'frontend/src' : 'src', [corePathRoot, '/dist/']);
+                const backModuleNames = await findAllModuleNames(isOneLevelAboveRoot ? 'server/src' : 'src', [corePathRoot, '/dist/']);
 
                 const selectedModuleR = await Q({
                     prompt: `In which module?`,
@@ -114,7 +115,7 @@ module.exports = () => {
                     }
                     const [extension, templateName, folderName] = extensions[whatToGenerate.toLowerCase()]
                     const generatedFilePath = Path.join(basePath, selectedModule, folderName, fileName + extension);
-                    const templatePath = Path.join(basePath, `00_nuke/templates/${templateName}`);
+                    const templatePath = Path.join(basePath, `${corePathRoot}/templates/${templateName}`);
                     await writeAndopenFile([generatedFilePath, templatePath, moduleNameVarz(selectedModule)]);
                 } else if (whatToGenerate === `COMPONENT`) {
                     //----------------------------------------
@@ -128,7 +129,7 @@ module.exports = () => {
                     };
 
                     const createdPaths = templater.templater(
-                        Path.join(basePath, `00_nuke/templates/new-component`), // from
+                        Path.join(basePath, `${corePathRoot}/templates/new-component`), // from
                         Path.join(basePath, selectedModule, `${varz.MyNewModule}`), // to
                         varz, // replace
                         { module: varz['my-new-module'], Module: varz.MyNewModule }, // file name replacer
