@@ -4,7 +4,7 @@ const vscode = require('vscode')
 const window = vscode.window
 const workspace = vscode.workspace
 
-const { isset, allMatches } = require('../utils')
+const { isset } = require('../utils')
 
 //----------------------------------------
 // CONFIG
@@ -47,7 +47,7 @@ const process = {
         regexpHighlight(editor, /\/!\\/g, config.styles.warningSign)
         regexpHighlightFirstCapturingGroup(editor, /(TODO)/g, config.styles.todo)
         regexpHighlightFirstCapturingGroup(editor, /(DELETEME|TODELETE)/g, config.styles.delete)
-        regexpHighlight(editor, /(?:\$\.throw|errors?)(\.[[\]A-Za-z0-9_]+)/g, config.styles.error)
+        regexpHighlight(editor, /(?:\$\.throw|errors?)((?:\.|\[)[[\]A-Za-z0-9_]+)/g, config.styles.error)
         regexpHighlight(editor, /doc: `[^`]+`/g, config.styles.comment)
     },
     extension: {},
@@ -82,7 +82,7 @@ function highlight() {
         process.all(editor)
 
         if (isset(process.extension[extension])) process.extension[extension](editor)
-    } catch (err) { console.error(err); }
+    } catch (err) { console.error(err) }
 }
 
 /** Highlight whole match of the regexp */
@@ -120,7 +120,7 @@ function regexpHighlightFirstCapturingGroup(editor, regexp, styleForCapturingGro
         const match1End = match1Start + match[1].length
 
         if (styleForTheRest$) ranges[0].push(match.index, match1Start, match1End, match.index + match[0].length)
-        if (styleForCapturingGroup) ranges[1].push(match1Start, match1End); // match 1 range
+        if (styleForCapturingGroup) ranges[1].push(match1Start, match1End) // match 1 range
     }
 
     ranges.forEach((arrayOfStartEnd, i) => {
