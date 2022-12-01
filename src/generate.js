@@ -32,7 +32,7 @@ module.exports = () => {
                 isFront = backOrFront === 'FRONT'
                 isBack = backOrFront === 'BACK'
                 const folderForEnd = isFront ? 'front' : 'back'
-                console.log(`workspacePath`, workspacePath)
+
                 if (fs.existsSync(Path.join(workspacePath, 'src'))) basePath = Path.join(workspacePath, 'src')
                 else {
                     basePath = (await vscode.workspace.findFiles(`**/${folderForEnd}/src/**/*`)).reduce((serverBasePath, file) => {

@@ -114,7 +114,6 @@ function regexpHighlightFirstCapturingGroup(editor, regexp, styleForCapturingGro
 
     while (match = regexp.exec(text)) {
         if (!isset(match[1])) continue
-        console.log(`match`, match)
 
         const match1Start = match.index + match[0].lastIndexOf(match[1])
         const match1End = match1Start + match[1].length
@@ -137,31 +136,3 @@ function regexpHighlightFirstCapturingGroup(editor, regexp, styleForCapturingGro
         editor.setDecorations(style, rangesLocal)
     })
 }
-
-//----------------------------------------
-// TEST FLOW AUTO SYNOPSIS
-//----------------------------------------
-workspace.onWillSaveTextDocument(async function (event) {
-    console.log(`HIGH`)
-    try {
-        const editor = window.activeTextEditor
-        if (editor && event.document === editor.document && editor.document.fileName.endsWith('test-flow.ts')) {
-            const text = editor.document.getText()
-            const match = /^\/\* SYNOPSIS[\s\S]*?\*\/\n?\n?/.exec(text) || []
-            const alreadyExistingSelection = isset(match[0])
-            const allDescriptionMatches = allMatches(text, /doc: `(.+?)`,\s*\n/g)
-            let synopsis = '/* SYNOPSIS\n\n'
-            let i = 0
-            for (const [, description] of allDescriptionMatches) synopsis += `${++i}) ${description}\n`
-            synopsis += '*/\n\n'
-            await editor.edit(editBuilder => {
-                if (alreadyExistingSelection) {
-                    const deleteStart = editor.document.positionAt(match.index)
-                    const deleteEnd = editor.document.positionAt(match.index + match[0].length)
-                    editBuilder.delete(new vscode.Range(deleteStart, deleteEnd))
-                }
-                editBuilder.insert(editor.document.positionAt(0), synopsis)
-            })
-        }
-    } catch (err) { console.error(err) }
-}, null, ctx.subscriptions)
