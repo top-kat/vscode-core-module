@@ -13,6 +13,8 @@ module.exports = () => {
     vscode.commands.registerCommand('coreVscodeModule.generate', async () => {
         try {
             let basePath, isFront, isBack, isOneLevelAboveRoot = false
+            let nameOfRootFolder
+            let nameOfModuleFolder
 
             const workspacePath = vscode.workspace.workspaceFolders[0].uri.path
 
@@ -29,6 +31,7 @@ module.exports = () => {
                     prompt: randomItemInArray([`Hi DAD!! What do you want I generate for you today ?`, `Huh O_o !! You waked me up!`, `Lazy boy! Do you really need that I do the work for you ?`, 'Oh SHIT! let me finish first!']),
                     choices: [`BACK`, `FRONT`],
                 })
+
                 isFront = backOrFront === 'FRONT'
                 isBack = backOrFront === 'BACK'
                 const folderForEnd = isFront ? 'front' : 'back'
@@ -39,10 +42,23 @@ module.exports = () => {
                         return serverBasePath || file.path.split(`/${folderForEnd}/src/`)[0] + `/${folderForEnd}/src/`
                     }, false)
                     isOneLevelAboveRoot = true
+                    if (!basePath) {
+                        const appsDir = Path.join(workspacePath, 'apps')
+                        const dirs = fs.readdirSync(appsDir).filter(file => fs.statSync(appsDir + '/' + file).isDirectory())
+                        const dir = await Q({
+                            prompt: randomItemInArray([`Choose project`]),
+                            choices: dirs.map(d => d.replace(/^.*\/([^/]+$)/, '$1')),
+                        })
+
+                        basePath = Path.join(appsDir, dir)
+                        isOneLevelAboveRoot = false
+                        nameOfModuleFolder = Path.join(dir, 'src')
+                        nameOfRootFolder = dir
+                    }
                 }
             }
 
-            const corePathRoot = fs.existsSync(Path.join(basePath, '/00_nuke')) ? '00_nuke' : '0_core'
+            const corePathRoot = fs.existsSync(Path.join(basePath, '/00_nuke')) ? '00_nuke' : fs.existsSync(Path.join(basePath, '/0_core')) ? '0_core' : '../../packages/core-backend'
 
             const whatToGenerate = await Q({
                 prompt: `What kind of file ?`,
@@ -84,8 +100,8 @@ module.exports = () => {
 
                 await openFiles(...createdPaths.filter(p => !p.includes('error')))
             } else {
-                const frontModuleNames = await findAllModuleNames(isOneLevelAboveRoot ? 'frontend/src' : 'src', [corePathRoot, '/dist/'])
-                const backModuleNames = await findAllModuleNames(isOneLevelAboveRoot ? 'server/src' : 'src', [corePathRoot, '/dist/'])
+                const frontModuleNames = await findAllModuleNames(nameOfModuleFolder ? nameOfModuleFolder : isOneLevelAboveRoot ? 'frontend/src' : 'src', [corePathRoot, '/dist/'])
+                const backModuleNames = await findAllModuleNames(nameOfModuleFolder ? nameOfModuleFolder : isOneLevelAboveRoot ? 'server/src' : 'src', [corePathRoot, '/dist/'])
 
                 const selectedModuleR = await Q({
                     prompt: `In which module?`,
@@ -114,8 +130,8 @@ module.exports = () => {
                         userflows: [`.user-flow.ts`, `module.user-flow.ts`, ``],
                     }
                     const [extension, templateName, folderName] = extensions[whatToGenerate.toLowerCase()]
-                    const generatedFilePath = Path.join(basePath, selectedModule, folderName, fileName + extension)
-                    const templatePath = Path.join(basePath, `${corePathRoot}/templates/${templateName}`)
+                    const generatedFilePath = Path.join(basePath, 'src', selectedModule, folderName, fileName + extension)
+                    const templatePath = Path.join(basePath, `${corePathRoot}/src/templates/${templateName}`)
                     await writeAndopenFile([generatedFilePath, templatePath, moduleNameVarz(selectedModule)])
                 } else if (whatToGenerate === `COMPONENT`) {
                     //----------------------------------------

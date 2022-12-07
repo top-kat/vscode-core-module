@@ -10,9 +10,7 @@ const { isset, allMatches } = require('../utils')
 // TEST FLOW AUTO SYNOPSIS
 //----------------------------------------
 module.exports = (ctx = {}) => {
-    console.log(`ctx`, ctx)
     workspace.onWillSaveTextDocument(async function (event) {
-        console.log(`AA`)
         try {
             const editor = window.activeTextEditor
             if (editor && event.document === editor.document && editor.document.fileName.endsWith('test-flow.ts')) {
