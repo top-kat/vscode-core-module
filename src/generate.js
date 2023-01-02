@@ -12,20 +12,19 @@ const { isset, randomItemInArray, firstMatch, camelCase, pascalCase, dashCase, a
 module.exports = () => {
     vscode.commands.registerCommand('coreVscodeModule.generate', async () => {
         try {
-            let basePath, isFront, isBack, isOneLevelAboveRoot = false
+            let isFront, isBack, isOneLevelAboveRoot = false
             let nameOfRootFolder
             let nameOfModuleFolder
-
             const workspacePath = vscode.workspace.workspaceFolders[0].uri.path
+            let basePath = Path.join(workspacePath, 'src')
+
 
             if (workspacePath.includes('/server')) {
                 isFront = false
                 isBack = true
-                basePath = Path.join(workspacePath, 'src')
             } else if (workspacePath.includes('front')) {
                 isFront = true
                 isBack = false
-                basePath = Path.join(workspacePath, 'src')
             } else {
                 const backOrFront = await Q({
                     prompt: randomItemInArray([`Hi DAD!! What do you want I generate for you today ?`, `Huh O_o !! You waked me up!`, `Lazy boy! Do you really need that I do the work for you ?`, 'Oh SHIT! let me finish first!']),
@@ -34,31 +33,8 @@ module.exports = () => {
 
                 isFront = backOrFront === 'FRONT'
                 isBack = backOrFront === 'BACK'
-                const folderForEnd = isFront ? 'front' : 'back'
-
-                if (fs.existsSync(Path.join(workspacePath, 'src'))) basePath = Path.join(workspacePath, 'src')
-                else {
-                    basePath = (await vscode.workspace.findFiles(`**/${folderForEnd}/src/**/*`)).reduce((serverBasePath, file) => {
-                        return serverBasePath || file.path.split(`/${folderForEnd}/src/`)[0] + `/${folderForEnd}/src/`
-                    }, false)
-                    isOneLevelAboveRoot = true
-                    if (!basePath) {
-                        const appsDir = Path.join(workspacePath, 'apps')
-                        const dirs = fs.readdirSync(appsDir).filter(file => fs.statSync(appsDir + '/' + file).isDirectory())
-                        const dir = await Q({
-                            prompt: randomItemInArray([`Choose project`]),
-                            choices: dirs.map(d => d.replace(/^.*\/([^/]+$)/, '$1')),
-                        })
-
-                        basePath = Path.join(appsDir, dir)
-                        isOneLevelAboveRoot = false
-                        nameOfModuleFolder = Path.join(dir, 'src')
-                        nameOfRootFolder = dir
-                    }
-                }
+                basePath = null
             }
-
-            const corePathRoot = fs.existsSync(Path.join(basePath, '/00_nuke')) ? '00_nuke' : fs.existsSync(Path.join(basePath, '/0_core')) ? '0_core' : '../../packages/core-backend'
 
             const whatToGenerate = await Q({
                 prompt: `What kind of file ?`,
@@ -75,6 +51,35 @@ module.exports = () => {
                     `MODULE`,
                 ],
             })
+
+            const isDb = ['DAO', 'MODEL'].includes(whatToGenerate)
+
+            if (!isset(basePath)) {
+                const folderForEnd = isFront ? 'front' : 'back'
+                const appFolder = isDb ? 'db' : 'apps'
+                if (fs.existsSync(Path.join(workspacePath, 'src'))) basePath = Path.join(workspacePath, 'src')
+                else {
+                    basePath = (await vscode.workspace.findFiles(`**/${folderForEnd}/src/**/*`)).reduce((serverBasePath, file) => {
+                        return serverBasePath || file.path.split(`/${folderForEnd}/src/`)[0] + `/${folderForEnd}/src/`
+                    }, false)
+                    isOneLevelAboveRoot = true
+                    if (!basePath) {
+                        const appsDir = Path.join(workspacePath, appFolder)
+                        const dirs = fs.readdirSync(appsDir).filter(file => fs.statSync(appsDir + '/' + file).isDirectory())
+                        const dir = await Q({
+                            prompt: randomItemInArray([`Choose ${isDb ? 'database' : 'project'}`]),
+                            choices: dirs.map(d => d.replace(/^.*\/([^/]+$)/, '$1')),
+                        })
+
+                        basePath = Path.join(appsDir, dir)
+                        isOneLevelAboveRoot = false
+                        nameOfModuleFolder = Path.join(dir, 'src')
+                        nameOfRootFolder = dir
+                    }
+                }
+            }
+
+            const corePathRoot = fs.existsSync(Path.join(basePath, '/00_nuke')) ? '00_nuke' : fs.existsSync(Path.join(basePath, '/0_core')) ? '0_core' : '../../packages/core-backend'
 
             if (whatToGenerate === `MODULE`) {
                 //----------------------------------------
@@ -103,7 +108,7 @@ module.exports = () => {
                 const frontModuleNames = await findAllModuleNames(nameOfModuleFolder ? nameOfModuleFolder : isOneLevelAboveRoot ? 'frontend/src' : 'src', [corePathRoot, '/dist/'])
                 const backModuleNames = await findAllModuleNames(nameOfModuleFolder ? nameOfModuleFolder : isOneLevelAboveRoot ? 'server/src' : 'src', [corePathRoot, '/dist/'])
 
-                const selectedModuleR = await Q({
+                const selectedModuleR = isDb ? '' : await Q({
                     prompt: `In which module?`,
                     choices: isFront ? frontModuleNames : backModuleNames,
                     allowCustomValues: true,
