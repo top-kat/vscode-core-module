@@ -42,6 +42,7 @@ module.exports = () => {
                     `SERVICE`,
                     `MODEL`,
                     `DAO`,
+                    `FIREBASE DAO`,
                     `DEFINITIONS`,
                     `IMPORT`,
                     `SEED`,
@@ -52,7 +53,7 @@ module.exports = () => {
                 ],
             })
 
-            const isDb = ['DAO', 'MODEL'].includes(whatToGenerate)
+            const isDb = ['DAO', 'FIREBASE DAO', 'MODEL'].includes(whatToGenerate)
 
             if (!isset(basePath)) {
                 const folderForEnd = isFront ? 'front' : 'back'
@@ -113,14 +114,35 @@ module.exports = () => {
                     choices: isFront ? frontModuleNames : backModuleNames,
                     allowCustomValues: true,
                 })
+
                 const selectedModule = selectedModuleR.toString() // hack for no red to appear
-                const fileName = await Q({
-                    prompt: whatToGenerate === `COMPONENT` ? `Component name ?` : `File name without type extension (Eg: 'user-update' OR 'reservation-cancel')`,
-                    validateInput: str => isset(str) && str.length ? null : 'Cannot be empty',
-                })
 
+                let fileName
+                if (whatToGenerate.includes('DAO')) {
+                    const modelBaseDir = Path.join(basePath, 'src/models')
+                    const filesInModelFolder = fs.readdirSync(modelBaseDir)
+                    const modelNames = []
+                    filesInModelFolder.forEach(fileName => {
+                        if (fileName.includes('.model.')) {
+                            const daoName = fileName.replace('.model.', '.dao.')
+                            const hasDao = filesInModelFolder.includes(daoName)
+                            if (!hasDao) {
+                                modelNames.push(fileName.replace(/^(.+)\.model\.[tj]s$/, '$1'))
+                            }
+                        }
+                    })
+                    fileName = await Q({
+                        prompt: `For which model shall we create a DAO?`,
+                        choices: modelNames,
+                    })
+                } else {
+                    fileName = await Q({
+                        prompt: whatToGenerate === `COMPONENT` ? `Component name ?` : `File name without type extension (Eg: 'user-update' OR 'reservation-cancel')`,
+                        validateInput: str => isset(str) && str.length ? null : 'Cannot be empty',
+                    })
+                }
 
-                if ([`SERVICE`, `IMPORT`, `DEFINITIONS`, `MODEL`, `DAO`, `SEED`, `TESTFLOW`].includes(whatToGenerate)) {
+                if ([`SERVICE`, `IMPORT`, `DEFINITIONS`, `MODEL`, `DAO`, 'FIREBASE DAO', `SEED`, `TESTFLOW`].includes(whatToGenerate)) {
                     //----------------------------------------
                     // GENERIC
                     //----------------------------------------
@@ -132,12 +154,13 @@ module.exports = () => {
                         seed: [`.seed.ts`, `module.seed.ts`, ``],
                         model: [`.model.ts`, `module.model.ts`, `models`],
                         dao: [`.dao.ts`, `module.dao.ts`, `models`],
+                        firebasedao: [`.dao.ts`, `module-firebase.dao.ts`, `models`],
                         testflow: [`.test-flow.ts`, `module.test-flow.ts`, `tests`],
                     }
-                    const [extension, templateName, folderName] = extensions[whatToGenerate.toLowerCase()]
+                    const [extension, templateName, folderName] = extensions[whatToGenerate.toLowerCase().replace(/ /g, '')]
                     const generatedFilePath = Path.join(basePath, 'src', selectedModule, folderName, fileName + extension)
                     const templatePath = Path.join(basePath, `${corePathRoot}/src/templates/${templateName}`)
-                    await writeAndopenFile([generatedFilePath, templatePath, moduleNameVarz(selectedModule)])
+                    await writeAndopenFile([generatedFilePath, templatePath, moduleNameVarz(isDb ? fileName : selectedModule)])
                 } else if (whatToGenerate === `COMPONENT`) {
                     //----------------------------------------
                     // COMPONENT
