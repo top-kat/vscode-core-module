@@ -12,9 +12,7 @@ const { isset, randomItemInArray, firstMatch, camelCase, pascalCase, dashCase, a
 module.exports = () => {
     vscode.commands.registerCommand('coreVscodeModule.generate', async () => {
         try {
-            let isFront, isBack, isOneLevelAboveRoot = false
-            let nameOfRootFolder
-            let nameOfModuleFolder
+            let isFront, isBack
             const workspacePath = vscode.workspace.workspaceFolders[0].uri.path
             let basePath = Path.join(workspacePath, 'src')
 
@@ -46,7 +44,8 @@ module.exports = () => {
                     `DEFINITIONS`,
                     `IMPORT`,
                     `SEED`,
-                    `TESTFLOW`
+                    `TESTFLOW`,
+                    'TEST'
                 ] : [
                     'COMPONENT',
                     `MODULE`,
@@ -63,7 +62,6 @@ module.exports = () => {
                     basePath = (await vscode.workspace.findFiles(`**/${folderForEnd}/src/**/*`)).reduce((serverBasePath, file) => {
                         return serverBasePath || file.path.split(`/${folderForEnd}/src/`)[0] + `/${folderForEnd}/src/`
                     }, false)
-                    isOneLevelAboveRoot = true
                     if (!basePath) {
                         const appsDir = Path.join(workspacePath, appFolder)
                         const dirs = fs.readdirSync(appsDir).filter(file => fs.statSync(appsDir + '/' + file).isDirectory())
@@ -73,9 +71,6 @@ module.exports = () => {
                         })
 
                         basePath = Path.join(appsDir, dir)
-                        isOneLevelAboveRoot = false
-                        nameOfModuleFolder = Path.join(dir, 'src')
-                        nameOfRootFolder = dir
                     }
                 }
             }
@@ -106,12 +101,12 @@ module.exports = () => {
 
                 await openFiles(...createdPaths.filter(p => !p.includes('error')))
             } else {
-                const frontModuleNames = await findAllModuleNames(nameOfModuleFolder ? nameOfModuleFolder : isOneLevelAboveRoot ? 'frontend/src' : 'src', [corePathRoot, '/dist/'])
-                const backModuleNames = await findAllModuleNames(nameOfModuleFolder ? nameOfModuleFolder : isOneLevelAboveRoot ? 'server/src' : 'src', [corePathRoot, '/dist/'])
+
+                const moduleNames = await findAllModuleNames(Path.join(basePath, 'src'), [corePathRoot, 'dist/', '2_generated'])
 
                 const selectedModuleR = isDb ? '' : await Q({
                     prompt: `In which module?`,
-                    choices: isFront ? frontModuleNames : backModuleNames,
+                    choices: moduleNames,
                     allowCustomValues: true,
                 })
 
@@ -142,7 +137,7 @@ module.exports = () => {
                     })
                 }
 
-                if ([`SERVICE`, `IMPORT`, `DEFINITIONS`, `MODEL`, `DAO`, 'FIREBASE DAO', `SEED`, `TESTFLOW`].includes(whatToGenerate)) {
+                if ([`SERVICE`, `IMPORT`, `DEFINITIONS`, `MODEL`, `DAO`, 'FIREBASE DAO', `SEED`, `TESTFLOW`, 'TEST'].includes(whatToGenerate)) {
                     //----------------------------------------
                     // GENERIC
                     //----------------------------------------
@@ -156,6 +151,7 @@ module.exports = () => {
                         dao: [`.dao.ts`, `module.dao.ts`, `models`],
                         firebasedao: [`.dao.ts`, `module-firebase.dao.ts`, `models`],
                         testflow: [`.test-flow.ts`, `module.test-flow.ts`, `tests`],
+                        test: [`.test.ts`, `module.test-flow.ts`, `tests`],
                     }
                     const [extension, templateName, folderName] = extensions[whatToGenerate.toLowerCase().replace(/ /g, '')]
                     const generatedFilePath = Path.join(basePath, 'src', selectedModule, folderName, fileName + extension)
@@ -253,19 +249,10 @@ async function writeAndopenFile(...configs) {
     }
 }
 
-async function findAllModuleNames(nameOfRootFolder, ignorePatterns) {
-    const allServerModuleConfigFilesUri = await vscode.workspace.findFiles(`**/${nameOfRootFolder}/**/*`)
-    const allModulePaths = allServerModuleConfigFilesUri.reduce((uniqueModulePaths, actualFullPath) => {
-        const [, modulePath] = actualFullPath.path.match(new RegExp(`(/${nameOfRootFolder}/[^/]+/).*$`)) || []
-        if (modulePath && !uniqueModulePaths.includes(modulePath) && ignorePatterns.every(ignorePattern => !modulePath.includes(ignorePattern))) uniqueModulePaths.push(modulePath)
-        return uniqueModulePaths
-    }, [])
-
-    const allModules = allModulePaths.reduce((moduleNames, actualPth) => {
-        const moduleName = firstMatch(actualPth, new RegExp(`${nameOfRootFolder}.([^\\/]+).`))
-        if (!moduleNames.includes(moduleName)) return [...moduleNames, moduleName]
-        else return moduleNames
-    }, [])
-    allModules.sort()
-    return allModules
+async function findAllModuleNames(basePath, ignorePatterns) {
+    const filesInModelFolder = fs.readdirSync(basePath)
+    return filesInModelFolder.filter(fileName => {
+        const fileStat = fs.statSync(Path.join(basePath, fileName))
+        return !ignorePatterns.some(ip => fileName.includes(ip)) && fileStat.isDirectory()
+    })
 }
