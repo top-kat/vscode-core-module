@@ -11,7 +11,7 @@ module.exports = (ctx = {}) => {
     workspace.onWillSaveTextDocument(async function (event) {
         try {
             const editor = window.activeTextEditor
-            if (editor && event.document === editor.document && editor.document.fileName.endsWith('test-flow.ts') | editor.document.fileName.endsWith('test.ts')) {
+            if (editor && event.document === editor.document && editor.document.fileName.endsWith('.test-flow.ts') | editor.document.fileName.endsWith('.test.ts')) {
                 const text = editor.document.getText()
                 if (text.includes('rest-test')) {
                     const match = /^\/\* SYNOPSIS[\s\S]*?\*\/\n?\n?/.exec(text) || []
