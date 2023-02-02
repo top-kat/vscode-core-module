@@ -48,7 +48,7 @@ const process = {
         regexpHighlightFirstCapturingGroup(editor, /(TODO)/g, config.styles.todo)
         regexpHighlightFirstCapturingGroup(editor, /(DELETEME|TODELETE)/g, config.styles.delete)
         regexpHighlight(editor, /(?:\$\.throw|errors?)((?:\.|\[)[[\]A-Za-z0-9_]+)/g, config.styles.error)
-        regexpHighlight(editor, /applicationError\(.*/g, config.styles.error)
+        regexpHighlightFirstCapturingGroup(editor, /(applicationError)\(/g, config.styles.error)
         regexpHighlight(editor, /doc: `[^`]+`/g, config.styles.comment)
     },
     extension: {},

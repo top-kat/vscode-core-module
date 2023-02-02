@@ -1,7 +1,6 @@
 const vscode = require('vscode')
 const window = vscode.window
 const workspace = vscode.workspace
-
 const { isset, allMatches } = require('../utils')
 
 //----------------------------------------
