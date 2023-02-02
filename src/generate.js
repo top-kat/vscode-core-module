@@ -39,8 +39,8 @@ module.exports = () => {
                 choices: isBack ? [
                     `SERVICE`,
                     `MODEL`,
-                    `DAO`,
                     `FIREBASE DAO`,
+                    `MONGO DAO`,
                     `DEFINITIONS`,
                     `IMPORT`,
                     `SEED`,
@@ -52,7 +52,7 @@ module.exports = () => {
                 ],
             })
 
-            const isDb = ['DAO', 'FIREBASE DAO', 'MODEL'].includes(whatToGenerate)
+            const isDb = ['MONGO DAO', 'FIREBASE DAO', 'MODEL'].includes(whatToGenerate)
 
             if (!isset(basePath)) {
                 const folderForEnd = isFront ? 'front' : 'back'
@@ -137,7 +137,7 @@ module.exports = () => {
                     })
                 }
 
-                if ([`SERVICE`, `IMPORT`, `DEFINITIONS`, `MODEL`, `DAO`, 'FIREBASE DAO', `SEED`, `TESTFLOW`, 'TEST'].includes(whatToGenerate)) {
+                if ([`SERVICE`, `IMPORT`, `DEFINITIONS`, `MODEL`, `MONGO DAO`, 'FIREBASE DAO', `SEED`, `TESTFLOW`, 'TEST'].includes(whatToGenerate)) {
                     //----------------------------------------
                     // GENERIC
                     //----------------------------------------
@@ -148,7 +148,7 @@ module.exports = () => {
                         definitions: [`.def.ts`, `module.def.ts`, ``],
                         seed: [`.seed.ts`, `module.seed.ts`, ``],
                         model: [`.model.ts`, `module.model.ts`, `models`],
-                        dao: [`.dao.ts`, `module.dao.ts`, `models`],
+                        mongodao: [`.dao.ts`, `module.dao.ts`, `models`],
                         firebasedao: [`.dao.ts`, `module-firebase.dao.ts`, `models`],
                         testflow: [`.test-flow.ts`, `module.test-flow.ts`, `tests`],
                         test: [`.test.ts`, `module.test-flow.ts`, `tests`],
