@@ -42,7 +42,6 @@ module.exports = () => {
                     `FIREBASE DAO`,
                     `MONGO DAO`,
                     `DEFINITIONS`,
-                    `IMPORT`,
                     `SEED`,
                     `TESTFLOW`,
                     'TEST'
@@ -137,14 +136,13 @@ module.exports = () => {
                     })
                 }
 
-                if ([`SERVICE`, `IMPORT`, `DEFINITIONS`, `MODEL`, `MONGO DAO`, 'FIREBASE DAO', `SEED`, `TESTFLOW`, 'TEST'].includes(whatToGenerate)) {
+                if ([`SERVICE`, `DEFINITIONS`, `MODEL`, `MONGO DAO`, 'FIREBASE DAO', `SEED`, `TESTFLOW`, 'TEST'].includes(whatToGenerate)) {
                     //----------------------------------------
                     // GENERIC
                     //----------------------------------------
                     const extensions = {
                         //       extension |     templateName        | folder
-                        service: [`.svc.ts`, `module-generic.svc.ts`, `service`],
-                        import: [`-import.svc.ts`, `module-import.svc.ts`, `service`],
+                        service: [`.svc.ts`, `module-generic.svc.ts`, ``],
                         definitions: [`.def.ts`, `module.def.ts`, ``],
                         seed: [`.seed.ts`, `module.seed.ts`, ``],
                         model: [`.model.ts`, `module.model.ts`, `models`],
