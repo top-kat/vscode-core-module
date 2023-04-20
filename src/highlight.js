@@ -44,12 +44,12 @@ for (const name in config.stylesRaw) config.styles[name] = window.createTextEdit
 
 const process = {
     all(editor) {
-        regexpHighlight(editor, /\/!\\/g, config.styles.warningSign)
-        regexpHighlightFirstCapturingGroup(editor, /(TODO)/g, config.styles.todo)
-        regexpHighlightFirstCapturingGroup(editor, /(DELETEME|TODELETE)/g, config.styles.delete)
-        regexpHighlight(editor, /(?:\$\.throw|errors?)((?:\.|\[)[[\]A-Za-z0-9_]+)/g, config.styles.error)
-        regexpHighlightFirstCapturingGroup(editor, /(applicationError)\(/g, config.styles.error)
-        regexpHighlight(editor, /doc: `[^`]+`/g, config.styles.comment)
+        regexpHighlight(/\/!\\/g, config.styles.warningSign)
+        regexpHighlightFirstCapturingGroup(/(TODO)/g, config.styles.todo)
+        regexpHighlightFirstCapturingGroup(/(DELETEME|TODELETE)/g, config.styles.delete)
+        regexpHighlight(/(?:\$\.throw|errors?)(?:\.|\[)[[\]A-Za-z0-9_]+/g, config.styles.error) // $.throw.err('é')
+        regexpHighlightFirstCapturingGroup(/(applicationError)\(/g, config.styles.error)
+        regexpHighlight(/doc: `[^`]+`/g, config.styles.comment)
     },
     extension: {},
 }
@@ -87,7 +87,8 @@ function highlight() {
 }
 
 /** Highlight whole match of the regexp */
-function regexpHighlight(editor, regexp, style, hoverMessage) {
+function regexpHighlight(regexp, style) {
+    const editor = window.activeTextEditor
     if (!isset(style)) throw new Error('style is not defined for regexpHighlight')
     const text = editor.document.getText()
     let match
@@ -95,17 +96,22 @@ function regexpHighlight(editor, regexp, style, hoverMessage) {
     while ((match = regexp.exec(text))) {
         const start = editor.document.positionAt(match.index)
         const end = editor.document.positionAt(match.index + match[0].length)
+
         const range = new vscode.Range(start, end)
-        ranges.push(isset(hoverMessage) ? { range, hoverMessage } : range)
+
+        ranges.push(range)
     }
-    if (ranges.length) editor.setDecorations(style, ranges)
+
+    if (ranges.length) setTimeout(() => editor.setDecorations(style, ranges), 0) // FIX I duno problem
 }
 
 /**
  * @param {Array} styleForCapturingGroups [styleForWholeMatch, styleFor1styCapturing]
  * @param {*} hoverMessage
  */
-function regexpHighlightFirstCapturingGroup(editor, regexp, styleForCapturingGroup, styleForTheRest$) {
+function regexpHighlightFirstCapturingGroup(regexp, styleForCapturingGroup, styleForTheRest$) {
+    const editor = window.activeTextEditor
+
     const text = editor.document.getText()
     let match
     const ranges = [

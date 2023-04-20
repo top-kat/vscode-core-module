@@ -7,7 +7,5 @@ const genSynopsisForTestFlows = require('./src/generate-synopsis-header-for-test
 exports.activate = async (ctx) => {
     generate()
     highlight(ctx)
-    console.log(`AZ`)
     genSynopsisForTestFlows(ctx)
-    console.log(`VZ`)
 }
