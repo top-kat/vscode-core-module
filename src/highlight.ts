@@ -1,10 +1,10 @@
 /* eslint-disable no-cond-assign */
-// @ts-nocheck
-const vscode = require('vscode')
+
+import vscode from 'vscode'
 const window = vscode.window
 const workspace = vscode.workspace
 
-const { isset } = require('../utils')
+import { isset } from "../utils"
 
 //----------------------------------------
 // CONFIG
@@ -37,13 +37,13 @@ const config = {
             color: '#777',
         }
     },
-    styles: {},
+    styles: {} as any,
 }
 
 for (const name in config.stylesRaw) config.styles[name] = window.createTextEditorDecorationType(config.stylesRaw[name])
 
-const process = {
-    all(editor) {
+const process2 = {
+    all() {
         regexpHighlight(/\/!\\/g, config.styles.warningSign)
         regexpHighlightFirstCapturingGroup(/(TODO)/g, config.styles.todo)
         regexpHighlightFirstCapturingGroup(/(DELETEME|TODELETE)/g, config.styles.delete)
@@ -54,12 +54,12 @@ const process = {
     extension: {},
 }
 
-const fileTypes = Object.keys(process)
+const fileTypes = Object.keys(process2)
 
 //----------------------------------------
 // INIT
 //----------------------------------------
-module.exports = (ctx = {}) => {
+export default (ctx = {} as any) => {
     highlight()
 
     window.onDidChangeActiveTextEditor(highlight, null, ctx.subscriptions)
@@ -78,21 +78,22 @@ function highlight() {
 
         const [, fileType, extension] = editor.document.fileName.match(/(?:-([^-.]*))?\.([a-z0-9]+)$/) || []
 
-        if (fileType && fileTypes.includes(fileType)) process[fileType](editor)
+        if (fileType && fileTypes.includes(fileType)) process2[fileType](editor)
 
-        process.all(editor)
+        process2.all()
 
-        if (isset(process.extension[extension])) process.extension[extension](editor)
+        if (isset(process2.extension[extension])) process2.extension[extension](editor)
     } catch (err) { console.error(err) }
 }
 
 /** Highlight whole match of the regexp */
 function regexpHighlight(regexp, style) {
     const editor = window.activeTextEditor
+    if (!editor) throw 'NO EDITOR ACTIVE'
     if (!isset(style)) throw new Error('style is not defined for regexpHighlight')
     const text = editor.document.getText()
     let match
-    const ranges = []
+    const ranges = [] as vscode.Range[]
     while ((match = regexp.exec(text))) {
         const start = editor.document.positionAt(match.index)
         const end = editor.document.positionAt(match.index + match[0].length)
@@ -109,15 +110,16 @@ function regexpHighlight(regexp, style) {
  * @param {Array} styleForCapturingGroups [styleForWholeMatch, styleFor1styCapturing]
  * @param {*} hoverMessage
  */
-function regexpHighlightFirstCapturingGroup(regexp, styleForCapturingGroup, styleForTheRest$) {
+function regexpHighlightFirstCapturingGroup(regexp: RegExp, styleForCapturingGroup, styleForTheRest$?) {
     const editor = window.activeTextEditor
+    if (!editor) throw 'NO EDITOR ACTIVE'
 
     const text = editor.document.getText()
-    let match
+    let match: RegExpExecArray | null
     const ranges = [
         [], // the rest
         [] // 1st capturing group
-    ]
+    ] as [any, any]
 
     while (match = regexp.exec(text)) {
         if (!isset(match[1])) continue
@@ -132,11 +134,11 @@ function regexpHighlightFirstCapturingGroup(regexp, styleForCapturingGroup, styl
     ranges.forEach((arrayOfStartEnd, i) => {
         const style = i === 1 ? styleForCapturingGroup : styleForTheRest$
         if (!isset(style)) return
-        const rangesLocal = []
+        const rangesLocal = [] as any[]
         arrayOfStartEnd.forEach((start, i2) => {
             if (i2 % 2 !== 1) {
                 const end = arrayOfStartEnd[i2 + 1]
-                rangesLocal.push(new vscode.Range(editor.document.positionAt(start), editor.document.positionAt(end)))
+                rangesLocal.push(new vscode.Range(editor.document.positionAt(start), editor.document.positionAt(end)) as any)
             }
         })
 

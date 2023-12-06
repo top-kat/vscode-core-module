@@ -1,0 +1,198 @@
+import vscode from 'vscode'
+import Path from 'path'
+import fs from 'fs'
+import templater from 'simple-file-templater'
+
+const window = vscode.window
+
+const { randomItemInArray, camelCase, pascalCase, dashCase, asArray } = require('../utils')
+
+
+export default () => {
+    vscode.commands.registerCommand('coreVscodeModule.generate', async () => {
+        try {
+
+            const workspacePath = vscode.workspace.workspaceFolders?.[0].uri.path || './'
+
+            const choices = [
+                `SERVICE`,
+                `MODEL`,
+                `FIREBASE DAO`,
+                `MONGO DAO`,
+                `DEFINITIONS`,
+                `SEED`,
+                `TESTFLOW`,
+                'TEST',
+                'ERROR'
+            ] as const
+
+            const whatToGenerate = await Q({
+                prompt: `What to generate ?`,
+                choices
+            })
+
+            const isDb = ['MONGO DAO', 'FIREBASE DAO', 'MODEL'].includes(whatToGenerate)
+
+            let basePath: string
+            const folderForEnd = 'back'
+            const appFolder = isDb ? 'db' : 'apps'
+            if (fs.existsSync(Path.join(workspacePath, 'src'))) basePath = Path.join(workspacePath, 'src')
+            else {
+                basePath = (await vscode.workspace.findFiles(`**/${folderForEnd}/src/**/*`)).reduce((serverBasePath, file) => {
+                    return serverBasePath || file.path.split(`/${folderForEnd}/src/`)[0] + `/${folderForEnd}/src/`
+                }, '')
+                if (!basePath) {
+                    const appsDir = Path.join(workspacePath, appFolder)
+                    const dirs = fs.readdirSync(appsDir).filter(file => fs.statSync(appsDir + '/' + file).isDirectory()).filter(f => !f.includes('front'))
+                    let dir: string
+                    if (dirs.length > 1) {
+                        dir = await Q({
+                            prompt: randomItemInArray([`Choose ${isDb ? 'database' : 'project'}`]),
+                            choices: dirs.map(d => d.replace(/^.*\/([^/]+$)/, '$1')),
+                        })
+                    } else dir = dirs[0].replace(/^.*\/([^/]+$)/, '$1')
+
+                    basePath = Path.join(appsDir, dir)
+                }
+            }
+
+            const corePathRoot = fs.existsSync(Path.join(basePath, '/00_nuke')) ? '00_nuke' : fs.existsSync(Path.join(basePath, '/0_core')) ? '0_core' : '../../packages/core-backend'
+
+            const moduleNames = await findAllModuleNames(Path.join(basePath, 'src'), [corePathRoot, 'dist/', '2_generated'])
+
+            const selectedModuleR = isDb ? '' : await Q({
+                prompt: `In which module?`,
+                choices: moduleNames,
+                allowCustomValues: true,
+            })
+
+            const selectedModule = selectedModuleR.toString() // hack for no red to appear
+
+            let fileName
+            if (whatToGenerate.includes('DAO')) {
+                const modelBaseDir = Path.join(basePath, 'src/models')
+                const filesInModelFolder = fs.readdirSync(modelBaseDir)
+                const modelNames = [] as string[]
+                filesInModelFolder.forEach(fileName => {
+                    if (fileName.includes('.model.')) {
+                        const daoName = fileName.replace('.model.', '.dao.')
+                        const hasDao = filesInModelFolder.includes(daoName)
+                        if (!hasDao) {
+                            modelNames.push(fileName.replace(/^(.+)\.model\.[tj]s$/, '$1'))
+                        }
+                    }
+                })
+                fileName = await Q({
+                    prompt: `For which model shall we create a DAO?`,
+                    choices: modelNames,
+                })
+            } else {
+                fileName = await Q({
+                    prompt: `File name without type extension (Eg: 'userUpdate' OR 'reservationCancel')`,
+                    // validateInput: str => isset(str) && str.length ? null : 'Cannot be empty',
+                })
+            }
+
+            const extensions = {
+                //            extension |   templateName      | folder
+                service: /**/[`.svc.ts`, `module-generic.svc.ts`, ``],
+                definitions: [`.def.ts`, `module.def.ts`, ``],
+                seed: /*   */[`.seed.ts`, `module.seed.ts`, ``],
+                model: /*  */[`.model.ts`, `module.model.ts`, `models`],
+                mongodao:/**/[`.dao.ts`, `module.dao.ts`, `models`],
+                firebasedao: [`.dao.ts`, `module-firebase.dao.ts`, `models`],
+                testflow:/**/[`.test-flow.ts`, `module.test-flow.ts`, `tests`],
+                test: /*   */[`.test.ts`, `module.test-flow.ts`, `tests`],
+                error: /*  */[`.error.ts`, `module.error.ts`, ``],
+            }
+            const [extension, templateName, folderName] = extensions[whatToGenerate.toLowerCase().replace(/ /g, '')]
+            const generatedFilePath = Path.join(basePath, 'src', selectedModule, folderName, fileName + extension)
+            const templatePath = Path.join(basePath, `${corePathRoot}/src/templates/${templateName}`)
+            await writeAndopenFile([generatedFilePath, templatePath, moduleNameVarz(isDb ? fileName : selectedModule)])
+
+        } catch (err) {
+            console.error(`err`, err)
+            vscode.window.showErrorMessage((err as any)?.toString())
+            vscode.window.showInformationMessage(randomItemInArray(['Whooops!! shit happens...', 'Next time avoid waking me up', 'What! All that for.......that ?!', 'little dick', `You don't dare ? Dare you ?`, `Next time I'll stay in my bed!`]))
+        }
+    })
+}
+
+//----------------------------------------
+// HELPERS
+//----------------------------------------
+
+function moduleNameVarz(moduleName) {
+    if (/[A-Z]/.test(moduleName)) moduleName = moduleName.replace(/([A-Z])/g, '-$1') // allow camelCase
+
+    const moduleNameBits = moduleName.toLowerCase().split('-')
+    return {
+        myNewModule: camelCase(...moduleNameBits),
+        MyNewModule: pascalCase(...moduleNameBits),
+        'my-new-module': dashCase(...moduleNameBits),
+    }
+}
+
+
+async function Q<T extends any[] | readonly any[]>({
+    prompt,
+    choices,
+    allowCustomValues = false,
+}: {
+    prompt: string,
+    choices?: T,
+    allowCustomValues?: boolean
+}): Promise<T[number]> {
+    if (choices) return new Promise((resolve) => {
+        const quickPick = window.createQuickPick()
+        quickPick.items = choices.map(choice => ({ label: choice }))
+
+        if (prompt) quickPick.title = prompt
+        if (allowCustomValues) {
+            quickPick.onDidChangeValue(() => {
+                // add a new code to the pick list as the first item
+                if (!choices.includes(quickPick.value)) {
+                    const newItems = [quickPick.value, ...choices].map(label => ({ label }))
+                    quickPick.items = newItems
+                }
+            })
+        }
+        quickPick.onDidAccept(() => {
+            const selection = quickPick.activeItems[0]
+            resolve(selection.label)
+            quickPick.hide()
+        })
+        quickPick.show()
+    })
+    else return await window.showInputBox({ prompt })
+}
+
+
+async function openFiles(...filePaths) {
+    for (const filePath of asArray(filePaths)) await vscode.workspace.openTextDocument(vscode.Uri.file(filePath)).then(doc => vscode.window.showTextDocument(doc, { preview: false }))
+}
+
+
+/**
+ * @param  {...any} configs [filePath, templatePath]
+ */
+async function writeAndopenFile(...configs) {
+    for (const [filePath, templatePath, varz = {}, replaceInFileNames = {}] of configs) {
+        templater.templater(
+            templatePath, // from
+            filePath, // to
+            varz, // replace
+            replaceInFileNames, // file name replacer
+        )
+        // await fs.outputFile(filePath, fs.readFileSync(templatePath, 'utf-8'));
+        await openFiles(filePath)
+    }
+}
+
+async function findAllModuleNames(basePath, ignorePatterns) {
+    const filesInModelFolder = fs.readdirSync(basePath)
+    return filesInModelFolder.filter(fileName => {
+        const fileStat = fs.statSync(Path.join(basePath, fileName))
+        return !ignorePatterns.some(ip => fileName.includes(ip)) && fileStat.isDirectory()
+    })
+}
