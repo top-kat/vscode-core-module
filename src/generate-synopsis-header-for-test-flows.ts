@@ -1,6 +1,6 @@
 
 import vscode from 'vscode'
-import { isset, allMatches } from '../utils'
+import { allMatches } from '../utils'
 
 const workspace = vscode.workspace
 const window = vscode.window
