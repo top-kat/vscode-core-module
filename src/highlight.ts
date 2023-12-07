@@ -35,6 +35,11 @@ const config = {
         },
         comment: {
             color: '#777',
+        },
+        godMode: {
+            fontWeight: 'bold',
+            backgroundColor: '#316353',
+            color: '#3fa787',
         }
     },
     styles: {} as any,
@@ -50,6 +55,7 @@ const process2 = {
         regexpHighlight(/(?:\$\.throw|errors?)(?:\.|\[)[[\]A-Za-z0-9_]+/g, config.styles.error) // $.throw.err('é')
         regexpHighlightFirstCapturingGroup(/(applicationError)\(/g, config.styles.error)
         regexpHighlight(/doc: `[^`]+`/g, config.styles.comment)
+        regexpHighlightFirstCapturingGroup(/(ctx.GM|ctx.system\(\))/g, config.styles.godMode)
     },
     extension: {},
 }
