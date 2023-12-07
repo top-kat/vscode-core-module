@@ -111,7 +111,7 @@ function regexpHighlightFirstCapturingGroup(regexp, styleForCapturingGroup, styl
     const text = editor.document.getText();
     let match;
     const ranges = [
-        [],
+        [], // the rest
         [] // 1st capturing group
     ];
     while (match = regexp.exec(text)) {

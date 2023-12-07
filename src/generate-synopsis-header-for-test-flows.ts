@@ -23,7 +23,8 @@ export default (ctx = {} as any) => {
                     const allDescriptionMatches = allMatches(text, /doc: `(.+?)`,\s*\n/g)
                     let synopsis = '/* SYNOPSIS\n\n'
 
-                    for (const [i, description] of allDescriptionMatches) synopsis += `${i}) ${description}\n`
+                    let i = 0
+                    for (const [, description] of allDescriptionMatches) synopsis += `${++i}) ${description}\n`
                     synopsis += '*/\n\n'
 
                     await editor.edit(editBuilder => {
