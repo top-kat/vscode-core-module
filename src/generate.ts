@@ -17,8 +17,6 @@ export default () => {
             const choices = [
                 `SERVICE`,
                 `MODEL`,
-                `FIREBASE DAO`,
-                `MONGO DAO`,
                 `DEFINITIONS`,
                 `SEED`,
                 `TESTFLOW`,
@@ -31,7 +29,7 @@ export default () => {
                 choices
             })
 
-            const isDb = ['MONGO DAO', 'FIREBASE DAO', 'MODEL'].includes(whatToGenerate)
+            const isDb = ['MODEL'].includes(whatToGenerate)
 
             let basePath: string
             const folderForEnd = 'back'
@@ -93,6 +91,10 @@ export default () => {
                 })
             }
 
+            const mainChoiceFormatted = whatToGenerate.toLowerCase().replace(/ /g, '')
+            const filesToGenerate = [mainChoiceFormatted]
+            if (mainChoiceFormatted === 'model') filesToGenerate.push('mongodao')
+
             const extensions = {
                 //            extension |   templateName      | folder
                 service: /**/[`.svc.ts`, `module-generic.svc.ts`, ``],
@@ -105,10 +107,13 @@ export default () => {
                 test: /*   */[`.test.ts`, `module.test-flow.ts`, `tests`],
                 error: /*  */[`.error.ts`, `module.error.ts`, ``],
             }
-            const [extension, templateName, folderName] = extensions[whatToGenerate.toLowerCase().replace(/ /g, '')]
-            const generatedFilePath = Path.join(basePath, 'src', selectedModule, folderName, fileName + extension)
-            const templatePath = Path.join(basePath, `${corePathRoot}/src/templates/${templateName}`)
-            await writeAndopenFile([generatedFilePath, templatePath, moduleNameVarz(isDb ? fileName : selectedModule)])
+
+            for (const fileToGenerate of filesToGenerate) {
+                const [extension, templateName, folderName] = extensions[fileToGenerate]
+                const generatedFilePath = Path.join(basePath, 'src', selectedModule, folderName, fileName + extension)
+                const templatePath = Path.join(basePath, `${corePathRoot}/src/templates/${templateName}`)
+                await writeAndopenFile([generatedFilePath, templatePath, moduleNameVarz(isDb ? fileName : selectedModule)])
+            }
 
         } catch (err) {
             console.error(`err`, err)
