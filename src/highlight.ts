@@ -38,29 +38,36 @@ const config = {
         },
         godMode: {
             fontWeight: 'bold',
-            backgroundColor: '#316353',
             color: '#3fa787',
+            backgroundColor: '#316353',
+        },
+        packageJsonH1: {
+            fontWeight: 'bold',
+            color: '#80B6F8',
+            backgroundColor: '#18212C',
         }
     },
-    styles: {} as any,
+    styles: {} as any, // will be filled
 }
 
 for (const name in config.stylesRaw) config.styles[name] = window.createTextEditorDecorationType(config.stylesRaw[name])
 
-const process2 = {
-    all() {
-        regexpHighlight(/\/!\\/g, config.styles.warningSign)
-        regexpHighlightFirstCapturingGroup(/(TODO)/g, config.styles.todo)
-        regexpHighlightFirstCapturingGroup(/(DELETEME|TODELETE)/g, config.styles.delete)
-        regexpHighlight(/(?:\$\.throw|errors?)(?:\.|\[)[[\]A-Za-z0-9_]+/g, config.styles.error) // $.throw.err('é')
-        regexpHighlightFirstCapturingGroup(/(applicationError)\(/g, config.styles.error)
-        regexpHighlight(/doc: `[^`]+`/g, config.styles.comment)
-        regexpHighlightFirstCapturingGroup(/(ctx.GM|ctx.system\(\))/g, config.styles.godMode)
-    },
-    extension: {},
-}
+const init = (fileName: string) => {
+    regexpHighlight(/\/!\\/g, config.styles.warningSign)
+    regexpHighlightFirstCapturingGroup(/(TODO)/g, config.styles.todo)
+    regexpHighlightFirstCapturingGroup(/(DELETEME|TODELETE)/g, config.styles.delete)
+    regexpHighlight(/(?:\$\.throw|errors?)(?:\.|\[)[[\]A-Za-z0-9_]+/g, config.styles.error)
+    regexpHighlightFirstCapturingGroup(/(applicationError)\(/g, config.styles.error)
+    regexpHighlight(/doc: `[^`]+`/g, config.styles.comment)
+    regexpHighlightFirstCapturingGroup(/(ctx.GM|ctx.system\(\))/g, config.styles.godMode)
 
-const fileTypes = Object.keys(process2)
+    console.log('fileName', fileName);
+    if (/package.json/.test(fileName)) {
+        console.log(`INSIDDEE22`);
+        regexpHighlight(/"\/\/.+/g, config.styles.comment)
+        regexpHighlight(/"==.+/g, config.styles.packageJsonH1)
+    }
+}
 
 //----------------------------------------
 // INIT
@@ -82,13 +89,10 @@ function highlight() {
         const editor = window.activeTextEditor
         if (!editor || !editor.document) return
 
-        const [, fileType, extension] = editor.document.fileName.match(/(?:-([^-.]*))?\.([a-z0-9]+)$/) || []
+        const { fileName } = editor.document
 
-        if (fileType && fileTypes.includes(fileType)) process2[fileType](editor)
+        init(fileName)
 
-        process2.all()
-
-        if (isset(process2.extension[extension])) process2.extension[extension](editor)
     } catch (err) { console.error(err) }
 }
 
