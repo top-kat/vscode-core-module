@@ -2,7 +2,7 @@
     "name": "core-vscode-module",
     "displayName": "core-vscode-module",
     "description": "This vscode module allow to generate back and front end file and modules for core project and highlight particular core syntaxes",
-    "version": "1.1.4",
+    "version": "1.1.5",
     "publisher": "topkat",
     "engines": {
         "vscode": "^1.84.0"
@@ -48,17 +48,18 @@
         "test": "vscode-test"
     },
     "devDependencies": {
-        "@types/vscode": "^1.84.0",
         "@types/mocha": "^10.0.6",
         "@types/node": "18.x",
+        "@types/vscode": "^1.84.0",
         "@typescript-eslint/eslint-plugin": "^6.13.1",
         "@typescript-eslint/parser": "^6.13.1",
-        "eslint": "^8.54.0",
-        "typescript": "^5.3.2",
         "@vscode/test-cli": "^0.0.4",
-        "@vscode/test-electron": "^2.3.8"
+        "@vscode/test-electron": "^2.3.8",
+        "eslint": "^8.54.0",
+        "typescript": "^5.3.2"
     },
     "dependencies": {
+        "glob": "^10.3.10",
         "simple-file-templater": "^1.0.2"
     }
 }
