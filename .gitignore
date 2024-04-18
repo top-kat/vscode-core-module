@@ -54,3 +54,6 @@ node-scripts/input
 tests/env.json
 tests/api-doc.json
 env.json
+
+/out
+out/extension.js

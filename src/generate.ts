@@ -1,11 +1,11 @@
+
+
 import vscode from 'vscode'
 import Path from 'path'
 import fs from 'fs'
 import templater from 'simple-file-templater'
-
-const window = vscode.window
-
-const { randomItemInArray, camelCase, pascalCase, dashCase, asArray } = require('../utils')
+import { Q } from './usePrompt'
+import { randomItemInArray, camelCase, pascalCase, dashCase, asArray } from 'topkat-utils'
 
 
 export default () => {
@@ -136,40 +136,6 @@ function moduleNameVarz(moduleName) {
         MyNewModule: pascalCase(...moduleNameBits),
         'my-new-module': dashCase(...moduleNameBits),
     }
-}
-
-
-async function Q<T extends any[] | readonly any[]>({
-    prompt,
-    choices,
-    allowCustomValues = false,
-}: {
-    prompt: string,
-    choices?: T,
-    allowCustomValues?: boolean
-}): Promise<T[number]> {
-    if (choices) return new Promise((resolve) => {
-        const quickPick = window.createQuickPick()
-        quickPick.items = choices.map(choice => ({ label: choice }))
-
-        if (prompt) quickPick.title = prompt
-        if (allowCustomValues) {
-            quickPick.onDidChangeValue(() => {
-                // add a new code to the pick list as the first item
-                if (!choices.includes(quickPick.value)) {
-                    const newItems = [quickPick.value, ...choices].map(label => ({ label }))
-                    quickPick.items = newItems
-                }
-            })
-        }
-        quickPick.onDidAccept(() => {
-            const selection = quickPick.activeItems[0]
-            resolve(selection.label)
-            quickPick.hide()
-        })
-        quickPick.show()
-    })
-    else return await window.showInputBox({ prompt })
 }
 
 

@@ -2,7 +2,7 @@
     "name": "core-vscode-module",
     "displayName": "core-vscode-module",
     "description": "This vscode module allow to generate back and front end file and modules for core project and highlight particular core syntaxes",
-    "version": "1.1.5",
+    "version": "1.2.0",
     "publisher": "topkat",
     "engines": {
         "vscode": "^1.84.0"
@@ -26,6 +26,10 @@
             {
                 "command": "coreVscodeModule.generate",
                 "title": "Generate back end modules, services or models"
+            },
+            {
+                "command": "coreVscodeModule.h1",
+                "title": "Write a H1 as comment ascii art"
             }
         ],
         "configuration": {
@@ -60,6 +64,7 @@
     },
     "dependencies": {
         "glob": "^10.3.10",
-        "simple-file-templater": "^1.0.2"
+        "simple-file-templater": "^1.0.2",
+        "topkat-utils": "^1.2.89"
     }
 }
