@@ -2,8 +2,8 @@
     "name": "core-vscode-module",
     "displayName": "core-vscode-module",
     "description": "This vscode module allow to generate back and front end file and modules for core project and highlight particular core syntaxes",
-    "version": "1.2.0",
-    "publisher": "topkat",
+    "version": "1.3.0",
+    "publisher": "topkat & j0j032",
     "engines": {
         "vscode": "^1.84.0"
     },
@@ -30,8 +30,22 @@
             {
                 "command": "coreVscodeModule.h1",
                 "title": "Write a H1 as comment ascii art"
+            },
+            {
+                "command": "coreVscodeModule.showGitmoji",
+                "title": "Use custom gitmojis",
+                "icon": "$(smiley)"
             }
         ],
+        "menus": {
+            "scm/title": [
+                {
+                    "when": "scmProvider == git",
+                    "command": "coreVscodeModule.showGitmoji",
+                    "group": "navigation"
+                }
+            ]
+        },
         "configuration": {
             "title": "core-vscode-module",
             "properties": {
