@@ -5,7 +5,7 @@ import vscode from 'vscode'
 const window = vscode.window
 
 
-export async function Q<T extends any[] | readonly any[]>({
+export async function Q<T extends readonly any[]>({
   prompt,
   choices,
   allowCustomValues = false,
