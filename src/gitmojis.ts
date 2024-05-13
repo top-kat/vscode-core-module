@@ -3,115 +3,95 @@ import { GitExtension, Repository } from './git';
 
 
 
-const gitmoji: Array<[emoji: string, description: string, keywords: string]> = [
-  ['🎨', 'CUSTOM Improve structure/format of the code', '#keyword1'],
-  ['⚡️', 'Improve performance', '#keyword1'],
-  ['🔥', 'Remove code or files', '#keyword1'],
-  ['🐛', 'Fix a bug', '#keyword1'],
-  ['🚑', 'Critical hotfix', '#keyword1'],
-  ['✨', 'Introduce new features', '#keyword1'],
-  ['📝', 'Add or update documentation', '#keyword1'],
-  ['🚀', 'Deploy stuff', '#keyword1'],
-  ['💄', 'Add or update the UI and style files', '#keyword1'],
-  ['🎉', 'Begin a project', '#keyword1'],
-  ['✅', 'Add, update, or pass tests', '#keyword1'],
-  ['🔒️', 'Fix security or privacy issues', '#keyword1'],
-  ['🔐', 'Add or update secrets', '#keyword1'],
-  ['🔖', 'Release/Version tags', '#keyword1'],
-  ['🚨', 'Fix compiler/linter warnings', '#keyword1'],
-  ['🚧', 'Work in progress', '#keyword1'],
-  ['💚', 'Fix CI Build', '#keyword1'],
-  ['⬇️', 'Downgrade dependencies', '#keyword1'],
-  ['⬆️', 'Upgrade dependencies', '#keyword1'],
-  ['📌', 'Pin dependencies to specific versions', '#keyword1'],
-  ['👷', 'Add or update CI build system', '#keyword1'],
-  ['📈', 'Add or update analytics or track code', '#keyword1'],
-  ['♻️', 'Refactor code', '#keyword1'],
-  ['➕', 'Add a dependency', '#keyword1'],
-  ['➖', 'Remove a dependency', '#keyword1'],
-  ['🔧', 'Add or update configuration files', '#keyword1'],
-  ['🔨', 'Add or update development scripts', '#keyword1'],
-  ['🌐', 'Internationalization and localization', '#keyword1'],
-  ['✏️', 'Fix typos', '#keyword1'],
-  ['💩', 'Write bad code that needs to be improved', '#keyword1'],
-  ['⏪', 'Revert changes', '#keyword1'],
-  ['🔀', 'Merge branches', '#keyword1'],
-  ['📦', 'Add or update compiled files or packages', '#keyword1'],
-  ['👽️', 'Update code due to external API changes', '#keyword1'],
-  ['🚚', 'Move or rename resources (e.g.: files, paths, routes)', '#keyword1'],
-  ['📄', 'Add or update license', '#keyword1'],
-  ['💥', 'Introduce breaking changes', '#keyword1'],
-  ['🍱', 'Add or update assets', '#keyword1'],
-  ['♿️', 'Improve accessibility', '#keyword1'],
-  ['💡', 'Add or update comments in source code', '#keyword1'],
-  ['🍻', 'Write code drunkenly', '#keyword1'],
-  ['💬', 'Add or update text and literals', '#keyword1'],
-  ['🗃️', 'Perform database related changes', '#keyword1'],
-  ['🔊', 'Add or update logs', '#keyword1'],
-  ['🔇', 'Remove logs', '#keyword1'],
-  ['👥', 'Add or update contributor(s)', '#keyword1'],
-  ['🚸', 'Improve user experience/usability', '#keyword1'],
-  ['🏗️', 'Make architectural changes', '#keyword1'],
-  ['📱', 'Work on responsive design', '#keyword1'],
-  ['🤡', 'Mock things', '#keyword1'],
-  ['🥚', 'Add or update an easter egg', '#keyword1'],
-  ['🙈', 'Add or update a .gitignore file', '#keyword1'],
-  ['📸', 'Add or update snapshots', '#keyword1'],
-  ['⚗️', 'Perform experiments', '#keyword1'],
-  ['🔍', 'Improve SEO', '#keyword1'],
-  ['🏷️', 'Add or update types', '#keyword1'],
-  ['🌱', 'Add or update seed files', '#keyword1'],
-  ['🚩', 'Add, update, or remove feature flags', '#keyword1'],
-  ['🥅', 'Catch errors', '#keyword1'],
-  ['💫', 'Add or update animations and transitions', '#keyword1'],
-  ['🗑️', 'Deprecate code that needs to be cleaned up', '#keyword1'],
-  ['🛂', 'Work on code related to authorization, roles and permissions', '#keyword1'],
-  ['🩹', 'Simple fix for a non-critical issue', '#keyword1'],
-  ['🧐', 'Data exploration/inspection', '#keyword1'],
-  ['⚰️', 'Remove dead code', '#keyword1'],
-  ['🧪', 'Add a failing test', '#keyword1'],
-  ['👔', 'Add or update business logic', '#keyword1'],
-  ['🩺', 'Add or update healthcheck', '#keyword1'],
-  ['🧱', 'Infrastructure related changes', '#keyword1'],
-  ['🧑‍💻', 'Improve developer experience', '#keyword1'],
-  ['💸', 'Add sponsorships or money related infrastructure', '#keyword1'],
-  ['🧵', 'Add or update code related to multithreading or concurrency', '#keyword1'],
-  ['🦺', 'Add or update code related to validation', '#keyword1'],
+const gitmoji: Array<[emoji: string, description: string]> = [
+  // GLOBAL
+  ['✨', 'New functional feature (will be displayed in the changelog for the n👀bs)'],
+  ['🥷', 'New dev feature (will be displayed in the changelog for the devs)'],
+  ['👮‍♀️', 'Security Feature'],
+  ['🐞', 'Bug fix'],
+  ['🧹', 'Clean/refactor code'],
+  ['📚', 'Documentation creation / updates'], // 📖
+  ['📁', 'rename file or folder'],
+  ['🏗️', 'Move files / folder'],
+  ['🧟‍♀️', 'Mark file as outdated / deprecated'],
+  ['🗑️', 'remove file'],
+  ['🧰', 'Add helper / util function'],
+  ['🗄️', 'Declare app constant'],
+  ['🌏', 'Localization / translation changes / generate translations'],
+  ['🧭', 'Type improvements / fixes #typescript #typings'], // 🤖🏫
+  ['💬', 'Change / update import pathname'],
+  ['🕵️', 'Tracking / statistics / data gathering'],
+
+  // FRONT
+  ['📱', 'develop new screen'],
+  ['⚛️', 'Adding a new component'],
+  ['🛠️', 'Modified components'],
+  ['🛵', 'Navigation related changes'],
+  ['📐', 'Layout style fix'],
+  ['👩‍🎨', 'Design update'],
+  ['🪝', 'Create hook'],
+  ['📏', 'add a frontend token'],
+  ['🎬', 'Adding a showcase / demo component'],
+  ['💫', 'New animation'],
+  ['🛒', 'Generate assets'], // ⚙️🤖
+  ['🧱', 'Changes in assets'], // 🎞️
+  ['🔄', 'Replace Components'],
+
+  // BACK
+  ['🏰', 'New backend service'],
+  ['🧪', 'Créer modifier des tests (actuel emoji/phrase pas pertinente)'],
+  ['🔑', 'key / env variable modification'],
+  ['⛓️', 'Blockchain related changes'],
+
+  // Monorepo / structure
+  ['📦', 'package.json related changes'],
+
+  // WTF
+  ['🍌', 'When you are proud of your code and you want to do the helicockter #dick #sboub #bite'],
+  ['💩', 'Write shit / bad code'],
+  ['🧻', 'Modify update refactor shit / bad code'],
+
+  // COMBO
+  ['⬆️', 'Upgrade of service, component… (meant to be used in combination)'],
+
+  // META COMMANDS
+  ['🤼', '==> COMBO <=='], // 🥂👯👩‍❤️‍👩 /!\ DO NOT CHANGE NAME, check below
 ]
 
 
 
 export function gitmojis(context: vscode.ExtensionContext) {
-  const disposable = vscode.commands.registerCommand('coreVscodeModule.showGitmoji', (uri?) => {
+
+  const disposable = vscode.commands.registerCommand('coreVscodeModule.showGitmoji', async (uri?) => {
 
     const vscodeGit = vscode.extensions.getExtension<GitExtension>('vscode.git')
     const gitExtension = vscodeGit && vscodeGit.exports
     const git = gitExtension && gitExtension.getAPI(1)
 
-    if (!git) return vscode.window.showErrorMessage('Unable to load Git Extension')
+    const selected = await showQuickPick()
 
-    const items = gitmoji.map(([emoji, description, keywords]) => (
-      { label: `${emoji} ${description}`, emoji, code: keywords }
-    ))
+    if (selected && git) {
+      let valueToAdd: string
+      if (selected.label.includes('COMBO')) {
+        const selected1 = await showQuickPick()
+        const selected2 = await showQuickPick()
+        valueToAdd = (selected1?.emoji || '') + (selected2?.emoji || '')
+      } else valueToAdd = selected.emoji
 
-    vscode.window.showQuickPick(items).then(selected => {
-      if (selected) {
-        vscode.commands.executeCommand("workbench.view.scm")
-        const valueToAdd = selected.emoji
+      vscode.commands.executeCommand("workbench.view.scm")
 
-        if (uri) {
-          const uriPath = uri._rootUri?.path || uri.rootUri.path;
-          let selectedRepository = git.repositories.find(repository => repository.rootUri.path === uriPath)
-          if (selectedRepository) {
-            updateCommit(selectedRepository, valueToAdd)
-          }
-        } else {
-          for (let repo of git.repositories) {
-            updateCommit(repo, valueToAdd)
-          }
+      if (uri) {
+        const uriPath = uri._rootUri?.path || uri.rootUri.path;
+        let selectedRepository = git.repositories.find(repository => repository.rootUri.path === uriPath)
+        if (selectedRepository) {
+          updateCommit(selectedRepository, valueToAdd)
+        }
+      } else {
+        for (let repo of git.repositories) {
+          updateCommit(repo, valueToAdd)
         }
       }
-    })
+    }
   })
 
   context.subscriptions.push(disposable)
@@ -119,4 +99,20 @@ export function gitmojis(context: vscode.ExtensionContext) {
 
 function updateCommit(repository: Repository, valueOfGitmoji: String) {
   repository.inputBox.value = `${valueOfGitmoji} ${repository.inputBox.value}`
+}
+
+async function showQuickPick() {
+  const vscodeGit = vscode.extensions.getExtension<GitExtension>('vscode.git')
+  const gitExtension = vscodeGit && vscodeGit.exports
+  const git = gitExtension && gitExtension.getAPI(1)
+
+  if (!git) vscode.window.showErrorMessage('Unable to load Git Extension')
+  else {
+
+    const items = gitmoji.map(([emoji, description]) => (
+      { label: `${emoji} ${description}`, emoji }
+    ))
+
+    return await vscode.window.showQuickPick(items)
+  }
 }

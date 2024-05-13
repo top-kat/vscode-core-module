@@ -31,38 +31,41 @@ const font = {
 }
 
 // █◾◼▮▇◼█▀▔▃▄▅▆▂▁   ▀▄█
+// █◾◼▮▇◼█▀▔▃▄▅▆▂▁   ▀▄█
 
 export default () => {
+    vscode.commands.registerTextEditorCommand('coreVscodeModule.h1', async editor => header(editor, 'h1'))
+    vscode.commands.registerTextEditorCommand('coreVscodeModule.h2', async editor => header(editor, 'h2'))
+}
 
-    vscode.commands.registerTextEditorCommand('coreVscodeModule.header', async editor => {
 
-        const text = await Q({ prompt: `TEXT:` })
-        const hsize = await Q({ prompt: `SIZE:`, choices: ['h1', 'h2'] as const })
+async function header(editor: vscode.TextEditor, hsize: 'h1' | 'h2') {
 
-        const textParsed = convertAccentedCharacters(text
-            .replace(/[,?!]/g, '.')
-            .toUpperCase())
+    const text = await Q({ prompt: `TEXT:` })
 
-        const letters = textParsed.split('')
+    const textParsed = convertAccentedCharacters(text
+        .replace(/[,?!]/g, '.')
+        .toUpperCase())
 
-        const selectedFont = hsize === 'h1' ? font.ainsiShadow : font.customSmall
-        const nbLines = selectedFont.chars.length
+    const letters = textParsed.split('')
 
-        editor.selections.forEach((selection, i) => {
-            if (i > 0) return
-            const nbSpaces = selection.active.character
-            const lines = [] as string[]
-            forI(nbLines, lineNb => {
-                lines[lineNb] = (lineNb !== 0 ? ` `.repeat(nbSpaces) : '') + '//  ' + letters.map(l => {
-                    const letterIndex = alphabet.indexOf(l)
-                    if (letterIndex > -1) return selectedFont.chars[lineNb][letterIndex]
-                    else return ''
-                }).join(' '.repeat(selectedFont.letterSpacing))
-            })
+    const selectedFont = hsize === 'h1' ? font.ainsiShadow : font.customSmall
+    const nbLines = selectedFont.chars.length
 
-            editor.edit((editBuilder) => {
-                editBuilder.insert(selection.active, lines.join('\n'))
-            })
+    editor.selections.forEach((selection, i) => {
+        if (i > 0) return
+        const nbSpaces = selection.active.character
+        const lines = [] as string[]
+        forI(nbLines, lineNb => {
+            lines[lineNb] = (lineNb !== 0 ? ` `.repeat(nbSpaces) : '') + '//  ' + letters.map(l => {
+                const letterIndex = alphabet.indexOf(l)
+                if (letterIndex > -1) return selectedFont.chars[lineNb][letterIndex]
+                else return ''
+            }).join(' '.repeat(selectedFont.letterSpacing))
+        })
+
+        editor.edit((editBuilder) => {
+            editBuilder.insert(selection.active, lines.join('\n'))
         })
     })
 }
